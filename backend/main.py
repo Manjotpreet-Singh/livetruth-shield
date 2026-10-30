@@ -24,6 +24,11 @@ except ImportError:
 
 app = FastAPI(title="LiveTruth Shield API", version="1.0.0")
 
+# High-Performance In-Memory Verification Cache (Instant zero-latency responses for repeated videos)
+VERIFICATION_CACHE = {}
+MAX_CACHE_SIZE = 100
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -567,8 +572,15 @@ def health():
 
 @app.get("/api/check")
 async def check_video(v: str = Query(..., description="YouTube Video ID or URL")):
+
     video_id = extract_video_id(v)
     print(f"[*] Processing video ID: {video_id}")
+
+    # Instant Cache Lookup (Butter-Smooth 0ms response)
+    if video_id in VERIFICATION_CACHE:
+        print(f"[⚡ CACHE HIT] Serving instant cached fact-check for {video_id}")
+        return VERIFICATION_CACHE[video_id]
+
 
     if not client:
         print("[ Info ] Gemini client or API key not set, returning demo fallback")
@@ -725,6 +737,9 @@ async def check_video(v: str = Query(..., description="YouTube Video ID or URL")
 
         parsed = json.loads(raw_text.strip())
         print(f"[+] Successfully fact-checked live using {used_model}! Extracted {len(parsed.get('cards', []))} claims.")
+        VERIFICATION_CACHE[video_id] = parsed
+        if len(VERIFICATION_CACHE) > MAX_CACHE_SIZE:
+            VERIFICATION_CACHE.pop(next(iter(VERIFICATION_CACHE)))
         return parsed
 
     except Exception as err:

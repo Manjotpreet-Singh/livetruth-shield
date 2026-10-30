@@ -4,46 +4,64 @@
   let soundEnabled = true;
   let playedAlerts = new Set();
   let currentCards = [];
-  let speechRecognition = null;
-  let liveTranscriptLog = [];
+  let currentActiveIndex = -1;
+  let lastTimeUpdate = 0;
+  let cachedVideoElement = null;
 
+  // Optimized Audio Chime using shared AudioContext
+  let audioCtxInstance = null;
   function playAlertChime() {
     if (!soundEnabled) return;
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      if (!audioCtxInstance) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        audioCtxInstance = new AudioCtx();
+      }
+      if (audioCtxInstance.state === "suspended") {
+        audioCtxInstance.resume();
+      }
+      const osc = audioCtxInstance.createOscillator();
+      const gain = audioCtxInstance.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.16); // A5
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
+      osc.frequency.setValueAtTime(587.33, audioCtxInstance.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtxInstance.currentTime + 0.16);
+      gain.gain.setValueAtTime(0.12, audioCtxInstance.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtxInstance.currentTime + 0.22);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(audioCtxInstance.destination);
       osc.start();
-      osc.stop(ctx.currentTime + 0.22);
+      osc.stop(audioCtxInstance.currentTime + 0.22);
     } catch (e) {
-      console.warn("Audio alert failed", e);
+      console.warn("Chime failed", e);
     }
   }
 
   function getActiveVideoElement() {
-    const videos = Array.from(document.querySelectorAll("video"));
+    if (cachedVideoElement && document.contains(cachedVideoElement)) {
+      return cachedVideoElement;
+    }
+    const videos = document.querySelectorAll("video");
     if (videos.length === 0) return null;
-    // Prefer playing video or the largest visible one
-    const playing = videos.find(v => !v.paused && v.currentTime > 0);
-    if (playing) return playing;
-    return videos.sort((a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight))[0];
+    let chosen = null;
+    for (let i = 0; i < videos.length; i++) {
+      const v = videos[i];
+      if (!v.paused && v.currentTime > 0) {
+        chosen = v;
+        break;
+      }
+    }
+    if (!chosen && videos.length > 0) {
+      chosen = videos[0];
+    }
+    cachedVideoElement = chosen;
+    return chosen;
   }
 
   function setupExtension() {
-    // Only show if page has a video element or is YouTube/Vimeo/Reels
+    if (document.getElementById("livetruth-btn")) return;
     const video = getActiveVideoElement();
     if (!video && !window.location.hostname.includes("youtube.com")) return;
-
-    if (document.getElementById("livetruth-btn")) return;
 
     // 1. Floating Pill Button (Google Gemini Style)
     const btn = document.createElement("button");
@@ -66,7 +84,7 @@
     btn.addEventListener("click", togglePanel);
     document.body.appendChild(btn);
 
-    // 2. Google Material 3 Styled Universal Sidebar Panel
+    // 2. Google Material 3 Sidebar Panel
     const panel = document.createElement("div");
     panel.id = "livetruth-panel";
     panel.innerHTML = `
@@ -94,7 +112,7 @@
           Universal Video Intel & Topic Context
         </div>
         <div id="lt-video-title">Analyzing video claims...</div>
-        <div id="lt-video-summary">Cross-referencing video statements with Google Gemini Knowledge Grounding & peer-reviewed research...</div>
+        <div id="lt-video-summary">Cross-referencing video statements with Google Gemini Knowledge Grounding & authoritative databases...</div>
       </div>
 
       <!-- Overall Reliability Score Bar -->
@@ -129,9 +147,7 @@
     document.body.appendChild(panel);
 
     const closeBtn = document.getElementById("lt-close");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", togglePanel);
-    }
+    if (closeBtn) closeBtn.addEventListener("click", togglePanel);
 
     const soundBtn = document.getElementById("lt-sound-btn");
     if (soundBtn) {
@@ -142,7 +158,7 @@
       });
     }
 
-    // Panel Click Delegation (Timeline Pins, Timestamps & Evidence Drawers)
+    // Panel Event Delegation (Zero memory leak click router)
     panel.addEventListener("click", (e) => {
       // 1. Timeline Pin Click
       const pin = e.target.closest(".lt-timeline-pin");
@@ -155,7 +171,7 @@
           if (targetCard) {
             targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
             targetCard.classList.add("active-playback");
-            setTimeout(() => targetCard.classList.remove("active-playback"), 2200);
+            setTimeout(() => targetCard.classList.remove("active-playback"), 1800);
           }
         }
         return;
@@ -186,35 +202,62 @@
     detectUniversalVideoChange();
   }
 
+  // Butter-Smooth Throttled Video Playback Sync (60fps requestAnimationFrame)
   function attachUniversalVideoSync() {
     const video = getActiveVideoElement();
     if (!video || video.hasAttribute("data-lt-sync")) return;
     video.setAttribute("data-lt-sync", "true");
 
+    let isTicking = false;
     video.addEventListener("timeupdate", () => {
-      const current = Math.floor(video.currentTime);
-      highlightActiveCard(current);
+      const now = performance.now();
+      // Throttle to 4 times a second max (250ms) to save CPU & GPU overhead
+      if (now - lastTimeUpdate < 250) return;
+      lastTimeUpdate = now;
+
+      if (!isTicking) {
+        window.requestAnimationFrame(() => {
+          highlightActiveCard(Math.floor(video.currentTime));
+          isTicking = false;
+        });
+        isTicking = true;
+      }
     });
   }
 
   function highlightActiveCard(currentTime) {
-    const allCards = document.querySelectorAll(".lt-card");
-    allCards.forEach(card => card.classList.remove("active-playback"));
+    if (!currentCards.length) return;
+    let foundIndex = -1;
 
     for (let i = 0; i < currentCards.length; i++) {
       const c = currentCards[i];
       if (currentTime >= c.seconds && currentTime <= c.seconds + 6) {
-        const activeEl = document.getElementById(`card-${i}`);
-        if (activeEl) {
-          activeEl.classList.add("active-playback");
-          activeEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
-
-          if ((c.verdict === "FALSE" || c.verdict === "MISLEADING") && !playedAlerts.has(c.seconds)) {
-            playedAlerts.add(c.seconds);
-            playAlertChime();
-          }
-        }
+        foundIndex = i;
         break;
+      }
+    }
+
+    // Only update DOM if the active card has actually changed
+    if (foundIndex === currentActiveIndex) return;
+
+    if (currentActiveIndex !== -1) {
+      const prevEl = document.getElementById(`card-${currentActiveIndex}`);
+      if (prevEl) prevEl.classList.remove("active-playback");
+    }
+
+    currentActiveIndex = foundIndex;
+
+    if (foundIndex !== -1) {
+      const activeEl = document.getElementById(`card-${foundIndex}`);
+      if (activeEl) {
+        activeEl.classList.add("active-playback");
+        activeEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+        const c = currentCards[foundIndex];
+        if ((c.verdict === "FALSE" || c.verdict === "MISLEADING") && !playedAlerts.has(c.seconds)) {
+          playedAlerts.add(c.seconds);
+          playAlertChime();
+        }
       }
     }
   }
@@ -236,6 +279,7 @@
     if (currentKey && currentKey !== activeVideoKey) {
       activeVideoKey = currentKey;
       playedAlerts.clear();
+      currentActiveIndex = -1;
       fetchUniversalAnalysis(ytId, url);
     }
     attachUniversalVideoSync();
@@ -278,6 +322,7 @@
   function renderCards(cards, score, intel) {
     score = score || 72;
     currentCards = cards || [];
+    currentActiveIndex = -1;
     const feed = document.getElementById("lt-feed");
     const scoreVal = document.getElementById("lt-score-val");
     const scoreBar = document.getElementById("lt-score-bar");
@@ -398,10 +443,25 @@
     ], 72, "Video Topic & Scientific Context: Cognitive Science & Brain Optimization. Core memory and sleep principles are verified, but brain capacity exaggerations lack clinical trial replication.");
   }
 
+  // Smooth DOM Observer instead of aggressive polling
+  let domCheckTimeout = null;
+  const observer = new MutationObserver(() => {
+    if (domCheckTimeout) return;
+    domCheckTimeout = setTimeout(() => {
+      domCheckTimeout = null;
+      setupExtension();
+      attachUniversalVideoSync();
+    }, 400);
+  });
+
+  observer.observe(document.body || document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+
   window.addEventListener("yt-navigate-finish", () => {
     setupExtension();
     detectUniversalVideoChange();
   });
   window.addEventListener("load", setupExtension);
-  setInterval(setupExtension, 1500);
 })();

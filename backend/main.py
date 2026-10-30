@@ -611,11 +611,11 @@ async def check_video(v: str = Query(..., description="YouTube Video ID or URL")
         total_duration_sec = int(last_start)
 
         # Uniformly sample up to 120 snippets across the entire video timeline
-        if total_snippets <= 120:
+        if total_snippets <= 350:
             sampled_items = transcript
         else:
-            step = total_snippets / 120.0
-            sampled_items = [transcript[int(i * step)] for i in range(120)]
+            step = total_snippets / 350.0
+            sampled_items = [transcript[int(i * step)] for i in range(350)]
 
         for item in sampled_items:
             start = getattr(item, "start", None)
@@ -633,25 +633,26 @@ async def check_video(v: str = Query(..., description="YouTube Video ID or URL")
         print(f"[Info] Transcript error or unavailable: {e}")
         return get_fallback_demo_data()
 
-    # Gemini Fact-Checking Prompt covering entire video timeline
+    # Gemini Comprehensive Fact-Checking Prompt covering entire video timeline
     try:
         prompt = (
-            "You are LiveTruth Shield, an elite real-time fact-checking AI layer for YouTube videos.\n"
-            "Carefully analyze this timestamped transcript covering the ENTIRE VIDEO from beginning to end:\n\n"
+            "You are LiveTruth Shield, an elite real-time fact-checking AI layer.\n"
+            "Perform an EXHAUSTIVE, COMPREHENSIVE factual audit of this entire video transcript from 00:00 to the end:\n\n"
             + text_chunk + "\n\n"
-            "Strict Authority & Whitelist Verification Rules:\n"
-            "1. You are STRICTLY FORBIDDEN from citing blogs, social media, news tabloids, opinion pieces, or unverified secondary websites.\n"
-            "2. You MUST cite ONLY Tier-1 primary authorities and peer-reviewed scientific repositories:\n"
-            "   - Medicine & Health: PubMed Central (PMC), National Institutes of Health (NIH), Nature, The Lancet, NEJM, Cochrane Reviews, CDC, WHO.\n"
-            "   - Neuroscience & Biology: Nature Neuroscience, Journal of Neuroscience, Johns Hopkins Medicine, Harvard Brain Research Center.\n"
-            "   - Space, Physics & Earth Science: NASA Planetary Data System, ESA, NOAA, IPCC.\n"
-            "   - History & World Facts: National Archives, Encyclopaedia Britannica, UN / World Bank Official Repositories.\n"
-            "3. Scan across the entire video timeline from beginning to end.\n"
-            "4. Extract 4 to 8 testable factual claims made throughout the video.\n"
-            "5. For FALSE or MISLEADING claims, explicitly explain exactly what is wrong, provide the corrected facts, and cite the true empirical origin from the strict authorities above.\n"
-            "6. Assign verdicts strictly as: VERIFIED, FALSE, or MISLEADING.\n"
-            "7. Calculate an overall Truth Reliability Score (0-100%) for the full video.\n"
-            "8. Provide a concise topic intelligence summary.\n\n"
+            "Universal Fact-Checking & Evidence Guidelines:\n"
+            "1. EXHAUSTIVE COVERAGE: Extract ALL testable factual statements made across the entire video (aim for 8 to 15 distinct claims across timestamps).\n"
+            "2. Verify EVERY claim: Health, human biology, technology, physics, history, geopolitics, business, or economics.\n"
+            "3. REPUTABLE GLOBAL SOURCES: For every claim, verify against the recognized authority in that specific field:\n"
+            "   - Health & Biology: PubMed Central, NIH, Nature, The Lancet, CDC, WHO, Mayo Clinic, Cleveland Clinic.\n"
+            "   - Science & Tech: IEEE, ACM, Nature, Science, MIT Technology Review, NASA, ESA.\n"
+            "   - Economics & Finance: World Bank, IMF, Federal Reserve, SEC, Bloomberg, Financial Times.\n"
+            "   - History, Law & Politics: National Archives, Britannica, UN, Congressional Research Service, Supreme Court.\n"
+            "   - General Knowledge: Standard peer-reviewed encyclopedic consensus.\n"
+            "4. For FALSE or MISLEADING claims, clearly explain: What the speaker claimed, why it is false/misleading, what the actual verified fact is, and the exact authoritative source.\n"
+            "5. For VERIFIED claims, provide the scientific or institutional backing confirming its truth.\n"
+            "6. Verdicts must be strictly: VERIFIED, FALSE, or MISLEADING.\n"
+            "7. Compute an Overall Truth Reliability Score (0-100%).\n"
+            "8. Provide an insightful 1-2 sentence Video Intel context brief.\n\n"
             "Return ONLY a valid JSON object matching this exact schema:\n"
             "{\n"
             "  \"score\": 68,\n"

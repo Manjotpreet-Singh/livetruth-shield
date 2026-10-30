@@ -7,6 +7,8 @@
   let currentActiveIndex = -1;
   let lastTimeUpdate = 0;
   let cachedVideoElement = null;
+  let hasAnalyzedCurrentVideo = false;
+  let isFetching = false;
 
   let audioCtxInstance = null;
   function playAlertChime() {
@@ -53,12 +55,17 @@
     return chosen;
   }
 
+  function isVideoPlaying() {
+    const v = getActiveVideoElement();
+    return v && !v.paused && !v.ended && v.currentTime > 0;
+  }
+
   function setupExtension() {
     if (document.getElementById("livetruth-btn")) return;
     const video = getActiveVideoElement();
     if (!video && !window.location.hostname.includes("youtube.com")) return;
 
-    // 1. Sleek Floating Pill
+    // 1. Sleek Floating Action Pill
     const btn = document.createElement("button");
     btn.id = "livetruth-btn";
     btn.innerHTML = `
@@ -67,7 +74,7 @@
         <path d="M10 15.5l-3.5-3.5 1.41-1.41L10 12.67l5.59-5.59L17 8.5l-7 7z" fill="#3B82F6"/>
       </svg>
       <span>LiveTruth</span>
-      <span class="lt-badge-status">READY</span>
+      <span class="lt-badge-status" id="lt-pill-status">READY</span>
     `;
     btn.addEventListener("click", togglePanel);
     document.body.appendChild(btn);
@@ -82,7 +89,7 @@
             <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/>
           </svg>
           LiveTruth
-          <span class="lt-badge-status" id="lt-status-badge">AI Active</span>
+          <span class="lt-badge-status" id="lt-status-badge">Ready</span>
         </h2>
         <div style="display:flex; align-items:center; gap:6px;">
           <button id="lt-sound-btn" class="lt-sound-toggle active" title="Toggle audio alert">🔔 Sound</button>
@@ -90,17 +97,17 @@
         </div>
       </div>
 
-      <!-- Quick URL Test Bar -->
+      <!-- Test URL Input Bar -->
       <div class="lt-input-capsule">
-        <input type="text" id="lt-manual-url" placeholder="Test any video URL...">
+        <input type="text" id="lt-manual-url" placeholder="Paste link or test custom URL...">
         <button id="lt-manual-btn">Test</button>
       </div>
 
       <!-- Topic Intel -->
       <div id="lt-intel-box">
         <div class="lt-intel-tag">Topic Intel</div>
-        <div id="lt-video-title">Ready</div>
-        <div id="lt-video-summary">Play video or enter URL to audit claims.</div>
+        <div id="lt-video-title">No Video Active</div>
+        <div id="lt-video-summary">Play video or enter URL above to test facts.</div>
       </div>
 
       <!-- Reliability Score Bar -->
@@ -121,16 +128,12 @@
           <div id="lt-verdict-summary" class="lt-verdict-summary"></div>
         </div>
         <div id="lt-timeline-track" class="lt-timeline-track">
-          <span style="color:var(--lt-text-dim); font-size:10px;">Waiting for input...</span>
+          <span style="color:var(--lt-text-dim); font-size:10px;">Waiting for playback...</span>
         </div>
       </div>
 
       <!-- Claims Feed -->
-      <div id="lt-feed" class="lt-cards-feed">
-        <div style="text-align:center; color:var(--lt-text-dim); margin-top:40px; font-size:12px;">
-          No claims analyzed yet. Play video to test.
-        </div>
-      </div>
+      <div id="lt-feed" class="lt-cards-feed"></div>
     `;
     document.body.appendChild(panel);
 
@@ -151,12 +154,18 @@
     if (manualBtn && manualInput) {
       manualBtn.addEventListener("click", () => {
         const val = manualInput.value.trim();
-        if (val) fetchUniversalAnalysis(val, val);
+        if (val) {
+          hasAnalyzedCurrentVideo = true;
+          fetchUniversalAnalysis(val, val);
+        }
       });
       manualInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           const val = manualInput.value.trim();
-          if (val) fetchUniversalAnalysis(val, val);
+          if (val) {
+            hasAnalyzedCurrentVideo = true;
+            fetchUniversalAnalysis(val, val);
+          }
         }
       });
     }
@@ -192,13 +201,70 @@
         if (drawer) {
           drawer.classList.toggle("open");
           const isDrawerOpen = drawer.classList.contains("open");
-          researchBtn.querySelector(".drawer-arrow").innerText = isDrawerOpen ? "▲" : "▼";
+          const arrowEl = researchBtn.querySelector(".drawer-arrow");
+          if (arrowEl) arrowEl.innerText = isDrawerOpen ? "▲" : "▼";
         }
       }
     });
 
+    renderIdleState();
     attachUniversalVideoSync();
-    detectUniversalVideoChange();
+    checkPlaybackStateChange();
+  }
+
+  function renderIdleState() {
+    const feed = document.getElementById("lt-feed");
+    const summaryEl = document.getElementById("lt-video-summary");
+    const scoreVal = document.getElementById("lt-score-val");
+    const scoreBar = document.getElementById("lt-score-bar");
+    const trackEl = document.getElementById("lt-timeline-track");
+    const verdictSummary = document.getElementById("lt-verdict-summary");
+    const titleEl = document.getElementById("lt-video-title");
+    const statusBadge = document.getElementById("lt-status-badge");
+
+    let cleanTitle = document.title.replace(" - YouTube", "").replace(" | X", "").replace(" • Instagram", "");
+    if (titleEl) titleEl.innerText = cleanTitle || "Video Ready";
+    if (statusBadge) statusBadge.innerText = "Ready";
+
+    if (scoreVal) scoreVal.innerText = "--";
+    if (scoreBar) scoreBar.style.width = "0%";
+    if (trackEl) trackEl.innerHTML = `<span style="color:var(--lt-text-dim); font-size:10px;">Waiting for playback...</span>`;
+    if (verdictSummary) verdictSummary.innerHTML = "";
+    if (summaryEl) summaryEl.innerText = "Video is not playing. Play video or paste URL above to test.";
+
+    if (feed) {
+      feed.innerHTML = `
+        <div style="text-align:center; padding: 36px 14px; color:var(--lt-text-dim);">
+          <div style="color:var(--lt-text-main); font-size:13px; font-weight:500; margin-bottom:5px;">Video Idle</div>
+          <div style="font-size:11.5px; line-height:1.45;">Play the video to start real-time fact-checking, or enter any link above and click <strong>Test</strong>.</div>
+        </div>
+      `;
+    }
+  }
+
+  function renderEmptyState(msg) {
+    const feed = document.getElementById("lt-feed");
+    const summaryEl = document.getElementById("lt-video-summary");
+    const scoreVal = document.getElementById("lt-score-val");
+    const scoreBar = document.getElementById("lt-score-bar");
+    const trackEl = document.getElementById("lt-timeline-track");
+    const verdictSummary = document.getElementById("lt-verdict-summary");
+    const statusBadge = document.getElementById("lt-status-badge");
+
+    if (statusBadge) statusBadge.innerText = "Completed";
+    if (scoreVal) scoreVal.innerText = "--";
+    if (scoreBar) scoreBar.style.width = "0%";
+    if (trackEl) trackEl.innerHTML = "<span style='color:var(--lt-text-dim); font-size:10px;'>Ready</span>";
+    if (verdictSummary) verdictSummary.innerHTML = "";
+    if (summaryEl) summaryEl.innerText = msg || "No testable factual claims detected.";
+    if (feed) {
+      feed.innerHTML = `
+        <div style="text-align:center; padding: 36px 14px; color:var(--lt-text-dim);">
+          <div style="color:var(--lt-text-main); font-size:13px; font-weight:500; margin-bottom:5px;">No Claims Found</div>
+          <div style="font-size:11.5px; line-height:1.45;">${msg || "No testable factual claims detected in this video segment."}</div>
+        </div>
+      `;
+    }
   }
 
   function attachUniversalVideoSync() {
@@ -206,8 +272,16 @@
     if (!video || video.hasAttribute("data-lt-sync")) return;
     video.setAttribute("data-lt-sync", "true");
 
+    video.addEventListener("play", () => {
+      triggerAnalysisIfPlaying();
+    });
+
     let isTicking = false;
     video.addEventListener("timeupdate", () => {
+      if (!hasAnalyzedCurrentVideo && !isFetching && video.currentTime > 0.5 && !video.paused) {
+        triggerAnalysisIfPlaying();
+      }
+
       const now = performance.now();
       if (now - lastTimeUpdate < 250) return;
       lastTimeUpdate = now;
@@ -220,6 +294,25 @@
         isTicking = true;
       }
     });
+  }
+
+  function triggerAnalysisIfPlaying() {
+    const video = getActiveVideoElement();
+    if (!video || video.paused) return;
+
+    const url = window.location.href;
+    const params = new URLSearchParams(window.location.search);
+    const ytId = params.get("v");
+    const currentKey = ytId || url;
+
+    if (hasAnalyzedCurrentVideo && activeVideoKey === currentKey) return;
+
+    activeVideoKey = currentKey;
+    hasAnalyzedCurrentVideo = true;
+    playedAlerts.clear();
+    currentActiveIndex = -1;
+
+    fetchUniversalAnalysis(ytId, url);
   }
 
   function highlightActiveCard(currentTime) {
@@ -264,17 +357,24 @@
     if (panel) panel.classList.toggle("open", isOpen);
   }
 
-  function detectUniversalVideoChange() {
+  function checkPlaybackStateChange() {
     const url = window.location.href;
     const params = new URLSearchParams(window.location.search);
     const ytId = params.get("v");
     const currentKey = ytId || url;
 
-    if (currentKey && currentKey !== activeVideoKey) {
+    if (currentKey !== activeVideoKey) {
       activeVideoKey = currentKey;
+      hasAnalyzedCurrentVideo = false;
       playedAlerts.clear();
+      currentCards = [];
       currentActiveIndex = -1;
-      fetchUniversalAnalysis(ytId, url);
+
+      if (isVideoPlaying()) {
+        triggerAnalysisIfPlaying();
+      } else {
+        renderIdleState();
+      }
     }
     attachUniversalVideoSync();
   }
@@ -288,11 +388,16 @@
   }
 
   function fetchUniversalAnalysis(videoId, pageUrl) {
+    if (isFetching) return;
+    isFetching = true;
+
     const feed = document.getElementById("lt-feed");
     const titleEl = document.getElementById("lt-video-title");
+    const statusBadge = document.getElementById("lt-status-badge");
 
     let cleanTitle = document.title.replace(" - YouTube", "").replace(" | X", "").replace(" • Instagram", "");
     if (titleEl && cleanTitle) titleEl.innerText = cleanTitle;
+    if (statusBadge) statusBadge.innerText = "Auditing...";
 
     if (feed) {
       feed.innerHTML = `<div style="text-align:center; color:var(--lt-text-dim); font-size:12px; margin-top:35px;">Auditing claims with Gemini...</div>`;
@@ -300,14 +405,16 @@
 
     try {
       chrome.runtime.sendMessage({ action: "checkVideo", videoId: (videoId || pageUrl), title: cleanTitle }, (response) => {
+        isFetching = false;
         if (response && response.success && response.data && response.data.cards && response.data.cards.length > 0) {
           renderCards(response.data.cards, response.data.score, response.data.intel);
         } else {
-          renderEmptyState();
+          renderEmptyState("No verifiable claims found for this video.");
         }
       });
     } catch (err) {
-      renderEmptyState();
+      isFetching = false;
+      renderEmptyState("Could not reach backend at localhost:5000. Start backend with start.bat.");
     }
   }
 
@@ -321,12 +428,14 @@
     const summaryEl = document.getElementById("lt-video-summary");
     const trackEl = document.getElementById("lt-timeline-track");
     const verdictSummary = document.getElementById("lt-verdict-summary");
+    const statusBadge = document.getElementById("lt-status-badge");
 
+    if (statusBadge) statusBadge.innerText = "Audited";
     if (scoreVal) scoreVal.innerText = `${score}%`;
     if (scoreBar) scoreBar.style.width = `${score}%`;
 
     if (summaryEl) {
-      summaryEl.innerText = intel || "Analysis complete.";
+      summaryEl.innerText = intel || "Video claims audited successfully.";
     }
 
     if (trackEl && cards && cards.length > 0) {
@@ -383,29 +492,6 @@
     }
   }
 
-  function renderEmptyState() {
-    const feed = document.getElementById("lt-feed");
-    const summaryEl = document.getElementById("lt-video-summary");
-    const scoreVal = document.getElementById("lt-score-val");
-    const scoreBar = document.getElementById("lt-score-bar");
-    const trackEl = document.getElementById("lt-timeline-track");
-    const verdictSummary = document.getElementById("lt-verdict-summary");
-
-    if (scoreVal) scoreVal.innerText = "--";
-    if (scoreBar) scoreBar.style.width = "0%";
-    if (trackEl) trackEl.innerHTML = "<span style='color:var(--lt-text-dim); font-size:10px;'>Ready</span>";
-    if (verdictSummary) verdictSummary.innerHTML = "";
-    if (summaryEl) summaryEl.innerText = "Play video or paste link to start.";
-    if (feed) {
-      feed.innerHTML = `
-        <div style="text-align:center; padding: 30px 14px; color:var(--lt-text-dim);">
-          <div style="color:var(--lt-text-main); font-size:13px; font-weight:500; margin-bottom:4px;">Ready to Audit</div>
-          <div style="font-size:11.5px;">Play video or paste link above to test claims.</div>
-        </div>
-      `;
-    }
-  }
-
   let domCheckTimeout = null;
   const observer = new MutationObserver(() => {
     if (domCheckTimeout) return;
@@ -420,7 +506,7 @@
 
   window.addEventListener("yt-navigate-finish", () => {
     setupExtension();
-    detectUniversalVideoChange();
+    checkPlaybackStateChange();
   });
   window.addEventListener("load", setupExtension);
 })();

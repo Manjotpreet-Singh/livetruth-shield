@@ -1,28 +1,30 @@
-﻿{
+{
   "manifest_version": 3,
-  "name": "LiveTruth Shield - YouTube AI Fact-Checker",
-  "version": "1.1.0",
-  "description": "Zero-click, real-time AI fact-checking overlay on YouTube powered by Gemma and Gemini.",
+  "name": "LiveTruth Shield — Universal Real-Time AI Fact-Checker",
+  "version": "2.0.0",
+  "description": "Universal real-time AI fact-checking overlay for YouTube, X/Twitter, Instagram Reels, Vimeo, and any web video player.",
   "permissions": [
     "activeTab",
     "storage"
   ],
   "host_permissions": [
-    "https://*.youtube.com/*",
-    "http://localhost/*",
-    "http://127.0.0.1/*"
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "LiveTruth Settings"
+    "default_title": "LiveTruth Shield"
   },
   "content_scripts": [
     {
       "matches": [
-        "https://*.youtube.com/*"
+        "<all_urls>"
+      ],
+      "exclude_matches": [
+        "http://localhost:*/*",
+        "http://127.0.0.1:*/*"
       ],
       "js": [
         "content.js"

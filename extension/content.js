@@ -1,9 +1,11 @@
 (function () {
   let isOpen = false;
-  let activeVideoId = "";
+  let activeVideoKey = "";
   let soundEnabled = true;
   let playedAlerts = new Set();
   let currentCards = [];
+  let speechRecognition = null;
+  let liveTranscriptLog = [];
 
   function playAlertChime() {
     if (!soundEnabled) return;
@@ -14,8 +16,8 @@
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 Note (Google Material chime)
-      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.16); // A5 Note
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.16); // A5
       gain.gain.setValueAtTime(0.12, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
       osc.connect(gain);
@@ -27,7 +29,20 @@
     }
   }
 
+  function getActiveVideoElement() {
+    const videos = Array.from(document.querySelectorAll("video"));
+    if (videos.length === 0) return null;
+    // Prefer playing video or the largest visible one
+    const playing = videos.find(v => !v.paused && v.currentTime > 0);
+    if (playing) return playing;
+    return videos.sort((a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight))[0];
+  }
+
   function setupExtension() {
+    // Only show if page has a video element or is YouTube/Vimeo/Reels
+    const video = getActiveVideoElement();
+    if (!video && !window.location.hostname.includes("youtube.com")) return;
+
     if (document.getElementById("livetruth-btn")) return;
 
     // 1. Floating Pill Button (Google Gemini Style)
@@ -46,12 +61,12 @@
         </defs>
       </svg>
       <span>LiveTruth</span>
-      <span class="lt-badge-gemini" style="font-size:8px; padding:2px 6px;">Gemini AI</span>
+      <span class="lt-badge-gemini" style="font-size:8px; padding:2px 6px;">Universal AI</span>
     `;
     btn.addEventListener("click", togglePanel);
     document.body.appendChild(btn);
 
-    // 2. Google Material 3 Styled Sidebar Panel
+    // 2. Google Material 3 Styled Universal Sidebar Panel
     const panel = document.createElement("div");
     panel.id = "livetruth-panel";
     panel.innerHTML = `
@@ -62,7 +77,7 @@
             <path d="M10 15.5l-3.5-3.5 1.41-1.41L10 12.67l5.59-5.59L17 8.5l-7 7z" fill="#fff"/>
           </svg>
           LiveTruth Shield
-          <span class="lt-badge-gemini">Google Gemini</span>
+          <span class="lt-badge-gemini">Universal</span>
         </h2>
         <div style="display:flex; align-items:center; gap:8px;">
           <button id="lt-sound-btn" class="lt-sound-toggle active" title="Toggle audio alert on false claims">🔔 Audio Alert</button>
@@ -76,10 +91,10 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
           </svg>
-          Video Intel & Scientific Overview
+          Universal Video Intel & Topic Context
         </div>
         <div id="lt-video-title">Analyzing video claims...</div>
-        <div id="lt-video-summary">Cross-referencing spoken dialogue with Google Gemini Knowledge Graph and PubMed/NASA scientific repositories...</div>
+        <div id="lt-video-summary">Cross-referencing video statements with Google Gemini Knowledge Grounding & peer-reviewed research...</div>
       </div>
 
       <!-- Overall Reliability Score Bar -->
@@ -100,14 +115,14 @@
           <div id="lt-verdict-summary" class="lt-verdict-summary"></div>
         </div>
         <div id="lt-timeline-track" class="lt-timeline-track">
-          <span style="color:#8E918F; font-size:11px;">Scanning timeline timestamps...</span>
+          <span style="color:#8E918F; font-size:11px;">Scanning video timeline...</span>
         </div>
       </div>
 
       <!-- Fact Claims Stream with Live Playback Tracking -->
       <div id="lt-feed" class="lt-cards-feed">
         <div style="text-align:center; color:#8E918F; margin-top:35px; font-size:12.5px;">
-          Listening to audio and parsing verified claims...
+          Scanning video audio & fact-checking claims...
         </div>
       </div>
     `;
@@ -167,12 +182,12 @@
       }
     });
 
-    attachVideoSync();
-    detectVideoChange();
+    attachUniversalVideoSync();
+    detectUniversalVideoChange();
   }
 
-  function attachVideoSync() {
-    const video = document.querySelector("video");
+  function attachUniversalVideoSync() {
+    const video = getActiveVideoElement();
     if (!video || video.hasAttribute("data-lt-sync")) return;
     video.setAttribute("data-lt-sync", "true");
 
@@ -212,40 +227,43 @@
     }
   }
 
-  function detectVideoChange() {
+  function detectUniversalVideoChange() {
+    const url = window.location.href;
     const params = new URLSearchParams(window.location.search);
-    const v = params.get("v");
-    if (v && v !== activeVideoId) {
-      activeVideoId = v;
+    const ytId = params.get("v");
+    const currentKey = ytId || url;
+
+    if (currentKey && currentKey !== activeVideoKey) {
+      activeVideoKey = currentKey;
       playedAlerts.clear();
-      fetchAnalysis(v);
+      fetchUniversalAnalysis(ytId, url);
     }
-    attachVideoSync();
+    attachUniversalVideoSync();
   }
 
   function seekTo(seconds) {
-    const video = document.querySelector("video");
+    const video = getActiveVideoElement();
     if (video) {
       video.currentTime = seconds;
       video.play();
     }
   }
 
-  function fetchAnalysis(videoId) {
+  function fetchUniversalAnalysis(videoId, pageUrl) {
     const feed = document.getElementById("lt-feed");
     const titleEl = document.getElementById("lt-video-title");
 
-    let pageTitle = document.title.replace(" - YouTube", "");
-    if (titleEl && pageTitle) {
-      titleEl.innerText = pageTitle;
+    let cleanTitle = document.title.replace(" - YouTube", "").replace(" | X", "").replace(" • Instagram", "");
+    if (titleEl && cleanTitle) {
+      titleEl.innerText = cleanTitle;
     }
 
     if (feed) {
-      feed.innerHTML = `<div style="text-align:center; color:#8E918F; font-size:12.5px; margin-top:35px;">⚡ Analyzing full video with Google Gemini Knowledge Grounding...</div>`;
+      feed.innerHTML = `<div style="text-align:center; color:#8E918F; font-size:12.5px; margin-top:35px;">⚡ Fact-checking video with Google Gemini Knowledge Grounding...</div>`;
     }
 
     try {
-      chrome.runtime.sendMessage({ action: "checkVideo", videoId: videoId }, (response) => {
+      chrome.runtime.sendMessage({ action: "checkVideo", videoId: videoId || pageUrl }, (response) => {
         if (response && response.success && response.data) {
           renderCards(response.data.cards, response.data.score, response.data.intel);
         } else {
@@ -271,7 +289,7 @@
     if (scoreBar) scoreBar.style.width = `${score}%`;
 
     if (summaryEl) {
-      summaryEl.innerText = intel || "Video Topic & Scientific Overview: Verified claims cross-referenced with peer-reviewed medical journals and institutional databases.";
+      summaryEl.innerText = intel || "Video Topic & Scientific Overview: Spoken claims cross-referenced with peer-reviewed medical and factual databases.";
     }
 
     // 1. Render Google Chips Style Clickable Timeline
@@ -382,7 +400,7 @@
 
   window.addEventListener("yt-navigate-finish", () => {
     setupExtension();
-    detectVideoChange();
+    detectUniversalVideoChange();
   });
   window.addEventListener("load", setupExtension);
   setInterval(setupExtension, 1500);

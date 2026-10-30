@@ -47,13 +47,23 @@ if Features_Available and GEMINI_API_KEY:
         print(f"[WARNING] Could not initialize Gemini client: {e}")
 
 def extract_video_id(url_or_id: str) -> str:
-    # Handle URL-encoded strings (e.g., https%3A%2F%2F...)
+    if not url_or_id:
+        return ""
     url_or_id = urllib.parse.unquote(url_or_id).strip()
+    clean = url_or_id.rstrip("/")
+    if clean in ["https://www.youtube.com", "http://www.youtube.com", "youtube.com", "https://m.youtube.com"]:
+        return ""
     if "v=" in url_or_id:
-        return url_or_id.split("v=")[1].split("&")[0].split("#")[0]
+        v = url_or_id.split("v=")[1].split("&")[0].split("#")[0]
+        return v if len(v) >= 6 else ""
     elif "youtu.be/" in url_or_id:
-        return url_or_id.split("youtu.be/")[1].split("?")[0].split("&")[0]
-    return url_or_id
+        v = url_or_id.split("youtu.be/")[1].split("?")[0].split("&")[0]
+        return v if len(v) >= 6 else ""
+    elif len(url_or_id) == 11 and not url_or_id.startswith("http"):
+        return url_or_id
+    elif url_or_id.startswith("http://") or url_or_id.startswith("https://"):
+        return url_or_id
+    return ""
 
 def get_fallback_demo_data(query_info=""):
     return {
@@ -459,6 +469,14 @@ def health():
 async def check_video(v: str = Query(..., description="YouTube Video ID or URL"), title: str = Query("", description="Page or video title")):
 
     video_id = extract_video_id(v)
+    if not video_id:
+        print("[!] No valid video ID detected (empty or non-video page). Returning clean state.")
+        return {
+            "score": 0,
+            "intel": "No active video selected. Play a video or enter a URL above to test facts.",
+            "cards": []
+        }
+
     print(f"[*] Processing video ID: {video_id}")
 
     # Instant Cache Lookup (Butter-Smooth 0ms response)
@@ -621,7 +639,25 @@ async def check_video(v: str = Query(..., description="YouTube Video ID or URL")
             raw_text = raw_text[:-3]
 
         parsed = json.loads(raw_text.strip())
-        print(f"[+] Successfully fact-checked live using {used_model}! Extracted {len(parsed.get('cards', []))} claims.")
+        
+        # Sanitize cards: never include system errors or N/A quotes as FALSE facts
+        raw_cards = parsed.get("cards", [])
+        clean_cards = []
+        for c in raw_cards:
+            q = str(c.get("quote", "")).strip()
+            src = str(c.get("source", "")).strip().lower()
+            exp = str(c.get("explanation", "")).strip().lower()
+            if q.upper() in ["N/A", "NONE", "NULL", ""] or "system error" in src or "malformed" in exp or "non-existent" in exp:
+                continue
+            clean_cards.append(c)
+
+        parsed["cards"] = clean_cards
+        if not clean_cards:
+            parsed["score"] = 0
+            if "invalid" in parsed.get("intel", "").lower() or "malformed" in parsed.get("intel", "").lower():
+                parsed["intel"] = "No verifiable claims detected."
+
+        print(f"[+] Successfully fact-checked live using {used_model}! Extracted {len(clean_cards)} valid claims.")
         VERIFICATION_CACHE[video_id] = parsed
         if len(VERIFICATION_CACHE) > MAX_CACHE_SIZE:
             VERIFICATION_CACHE.pop(next(iter(VERIFICATION_CACHE)))

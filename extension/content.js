@@ -60,6 +60,19 @@
     return v && !v.paused && !v.ended && v.currentTime > 0;
   }
 
+  function isWatchPage() {
+    if (!window.location.hostname.includes("youtube.com")) return true;
+    return window.location.pathname === "/watch";
+  }
+
+  function getYouTubeVideoId() {
+    if (!window.location.hostname.includes("youtube.com")) return null;
+    if (window.location.pathname !== "/watch") return null;
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get("v");
+    return (v && v.length >= 8) ? v : null;
+  }
+
   function setupExtension() {
     if (document.getElementById("livetruth-btn")) return;
     const video = getActiveVideoElement();
@@ -125,7 +138,11 @@
       <div class="lt-timeline-box">
         <div class="lt-timeline-header">
           <span>Timeline</span>
-          <div id="lt-verdict-summary" class="lt-verdict-summary"></div>
+          <div id="lt-verdict-summary" class="lt-verdict-summary">
+            <span style="color:#F87171; font-family:var(--lt-mono); font-size:10px;">0 FALSE</span>
+            <span style="color:#34D399; font-family:var(--lt-mono); font-size:10px;">0 VERIFIED</span>
+            <span style="color:#FBBF24; font-family:var(--lt-mono); font-size:10px;">0 MISLEADING</span>
+          </div>
         </div>
         <div id="lt-timeline-track" class="lt-timeline-track">
           <span style="color:var(--lt-text-dim); font-size:10px;">Waiting for playback...</span>
@@ -229,7 +246,15 @@
     if (scoreVal) scoreVal.innerText = "--";
     if (scoreBar) scoreBar.style.width = "0%";
     if (trackEl) trackEl.innerHTML = `<span style="color:var(--lt-text-dim); font-size:10px;">Waiting for playback...</span>`;
-    if (verdictSummary) verdictSummary.innerHTML = "";
+    
+    if (verdictSummary) {
+      verdictSummary.innerHTML = `
+        <span style="color:#F87171; font-family:var(--lt-mono); font-size:10px;">0 FALSE</span>
+        <span style="color:#34D399; font-family:var(--lt-mono); font-size:10px;">0 VERIFIED</span>
+        <span style="color:#FBBF24; font-family:var(--lt-mono); font-size:10px;">0 MISLEADING</span>
+      `;
+    }
+    
     if (summaryEl) summaryEl.innerText = "Video is not playing. Play video or paste URL above to test.";
 
     if (feed) {
@@ -252,10 +277,18 @@
     const statusBadge = document.getElementById("lt-status-badge");
 
     if (statusBadge) statusBadge.innerText = "Completed";
-    if (scoreVal) scoreVal.innerText = "--";
+    if (scoreVal) scoreVal.innerText = "0%";
     if (scoreBar) scoreBar.style.width = "0%";
-    if (trackEl) trackEl.innerHTML = "<span style='color:var(--lt-text-dim); font-size:10px;'>Ready</span>";
-    if (verdictSummary) verdictSummary.innerHTML = "";
+    if (trackEl) trackEl.innerHTML = "<span style='color:var(--lt-text-dim); font-size:10px;'>No claims</span>";
+    
+    if (verdictSummary) {
+      verdictSummary.innerHTML = `
+        <span style="color:#F87171; font-family:var(--lt-mono); font-size:10px;">0 FALSE</span>
+        <span style="color:#34D399; font-family:var(--lt-mono); font-size:10px;">0 VERIFIED</span>
+        <span style="color:#FBBF24; font-family:var(--lt-mono); font-size:10px;">0 MISLEADING</span>
+      `;
+    }
+
     if (summaryEl) summaryEl.innerText = msg || "No testable factual claims detected.";
     if (feed) {
       feed.innerHTML = `
@@ -300,9 +333,9 @@
     const video = getActiveVideoElement();
     if (!video || video.paused) return;
 
+    if (!isWatchPage()) return;
+    const ytId = getYouTubeVideoId();
     const url = window.location.href;
-    const params = new URLSearchParams(window.location.search);
-    const ytId = params.get("v");
     const currentKey = ytId || url;
 
     if (hasAnalyzedCurrentVideo && activeVideoKey === currentKey) return;
@@ -358,9 +391,15 @@
   }
 
   function checkPlaybackStateChange() {
+    if (!isWatchPage()) {
+      activeVideoKey = "";
+      hasAnalyzedCurrentVideo = false;
+      renderIdleState();
+      return;
+    }
+
+    const ytId = getYouTubeVideoId();
     const url = window.location.href;
-    const params = new URLSearchParams(window.location.search);
-    const ytId = params.get("v");
     const currentKey = ytId || url;
 
     if (currentKey !== activeVideoKey) {
@@ -406,7 +445,7 @@
     try {
       chrome.runtime.sendMessage({ action: "checkVideo", videoId: (videoId || pageUrl), title: cleanTitle }, (response) => {
         isFetching = false;
-        if (response && response.success && response.data && response.data.cards && response.data.cards.length > 0) {
+        if (response && response.success && response.data) {
           renderCards(response.data.cards, response.data.score, response.data.intel);
         } else {
           renderEmptyState("No verifiable claims found for this video.");
@@ -419,8 +458,21 @@
   }
 
   function renderCards(cards, score, intel) {
+    // Sanitize: filter out any bogus cards with quote "N/A" or "System Error"
+    const validCards = (cards || []).filter(c => {
+      const q = (c.quote || "").trim().toUpperCase();
+      const s = (c.source || "").toLowerCase();
+      const exp = (c.explanation || "").toLowerCase();
+      return q !== "N/A" && q !== "NONE" && q !== "NULL" && q !== "" && !s.includes("system error") && !exp.includes("malformed");
+    });
+
+    if (validCards.length === 0) {
+      renderEmptyState(intel || "No verifiable claims found in this video.");
+      return;
+    }
+
     score = score || 0;
-    currentCards = cards || [];
+    currentCards = validCards;
     currentActiveIndex = -1;
     const feed = document.getElementById("lt-feed");
     const scoreVal = document.getElementById("lt-score-val");
@@ -430,6 +482,14 @@
     const verdictSummary = document.getElementById("lt-verdict-summary");
     const statusBadge = document.getElementById("lt-status-badge");
 
+    let falseCount = 0, verifiedCount = 0, misleadingCount = 0;
+    validCards.forEach(c => {
+      const v = (c.verdict || "VERIFIED").toUpperCase();
+      if (v === "FALSE") falseCount++;
+      else if (v === "VERIFIED" || v === "TRUE") verifiedCount++;
+      else misleadingCount++;
+    });
+
     if (statusBadge) statusBadge.innerText = "Audited";
     if (scoreVal) scoreVal.innerText = `${score}%`;
     if (scoreBar) scoreBar.style.width = `${score}%`;
@@ -438,33 +498,27 @@
       summaryEl.innerText = intel || "Video claims audited successfully.";
     }
 
-    if (trackEl && cards && cards.length > 0) {
-      let falseCount = 0, verifiedCount = 0, misleadingCount = 0;
-
-      trackEl.innerHTML = cards.map((c, idx) => {
+    if (trackEl) {
+      trackEl.innerHTML = validCards.map((c, idx) => {
         const v = (c.verdict || "VERIFIED").toUpperCase();
-        if (v === "FALSE") falseCount++;
-        else if (v === "VERIFIED" || v === "TRUE") verifiedCount++;
-        else misleadingCount++;
-
         return `
           <button class="lt-timeline-pin ${v}" data-seconds="${c.seconds}" data-card="card-${idx}" title="${c.timestamp}: ${c.quote}">
             <span>${c.timestamp}</span>
           </button>
         `;
       }).join("");
-
-      if (verdictSummary) {
-        verdictSummary.innerHTML = `
-          <span style="color:#F87171; font-family:var(--lt-mono); font-size:10px;">${falseCount} F</span>
-          <span style="color:#34D399; font-family:var(--lt-mono); font-size:10px;">${verifiedCount} V</span>
-          <span style="color:#FBBF24; font-family:var(--lt-mono); font-size:10px;">${misleadingCount} M</span>
-        `;
-      }
     }
 
-    if (feed && cards) {
-      feed.innerHTML = cards.map((c, idx) => {
+    if (verdictSummary) {
+      verdictSummary.innerHTML = `
+        <span style="color:#F87171; font-family:var(--lt-mono); font-size:10px;">${falseCount} FALSE</span>
+        <span style="color:#34D399; font-family:var(--lt-mono); font-size:10px;">${verifiedCount} VERIFIED</span>
+        <span style="color:#FBBF24; font-family:var(--lt-mono); font-size:10px;">${misleadingCount} MISLEADING</span>
+      `;
+    }
+
+    if (feed) {
+      feed.innerHTML = validCards.map((c, idx) => {
         const v = (c.verdict || "VERIFIED").toUpperCase();
         return `
           <div id="card-${idx}" class="lt-card ${v}">

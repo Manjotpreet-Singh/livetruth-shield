@@ -1,35 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
+  <title>LiveTruth</title>
   <style>
-    body { width: 280px; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; background: #0f0f0f; color: #fff; padding: 16px; margin: 0; box-sizing: border-box; }
-    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .brand { font-size: 15px; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 6px; }
-    .pulse-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
-    .card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-    .label { font-size: 10px; text-transform: uppercase; color: #888; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .val { font-size: 12px; color: #eee; font-weight: 500; line-height: 1.4; }
-    .stat-row { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid #282828; font-size: 11px; color: #aaa; }
+    * { box-sizing: border-box; }
+    body {
+      width: 280px;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #090A0F;
+      color: #FFFFFF;
+      -webkit-font-smoothing: antialiased;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .brand {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      letter-spacing: -0.2px;
+    }
+    .status-badge {
+      font-size: 10px;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      color: #34D399;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 12px;
+      padding: 2px 7px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pulse {
+      width: 5px;
+      height: 5px;
+      background: #10B981;
+      border-radius: 50%;
+    }
+    .card {
+      background: #12141A;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94A3B8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .desc {
+      font-size: 12px;
+      color: #E2E8F0;
+      line-height: 1.4;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748B;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .row strong {
+      color: #94A3B8;
+      font-family: ui-monospace, monospace;
+    }
+    .footer {
+      font-size: 11px;
+      color: #64748B;
+      text-align: center;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="brand">🙡 LiveTruth Shield</div>
-    <div class="pulse-dot"></div>
+    <div class="brand">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.2">
+        <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/>
+        <path d="M10 15.5l-3.5-3.5 1.41-1.41L10 12.67l5.59-5.59L17 8.5l-7 7z" fill="#3B82F6"/>
+      </svg>
+      LiveTruth
+    </div>
+    <div class="status-badge"><div class="pulse"></div> Ready</div>
   </div>
   <div class="card">
-    <div class="label">System Status</div>
-    <div class="val" style="color:#34d399; font-weight:600;">● Actively Scanning YouTube</div>
-    <div class="stat-row">
-      <span>Engine</span>
-      <strong style="color:#fff;">Gemma + Gemini Search</strong>
+    <div class="title">Overlay HUD</div>
+    <div class="desc">The LiveTruth button appears automatically at the bottom right of any video page.</div>
+    <div class="row">
+      <span>AI Engine</span>
+      <strong>Gemini 3 + Grounding</strong>
     </div>
   </div>
-  <div class="card">
-    <div class="label">⚡ Instant Video Intel</div>
-    <div class="val">Open any video on YouTube to view live fact-checks, sources, and background context.</div>
-  </div>
-  <p style="font-size:10px; color:#777; text-align:center; margin:10px 0 0;">Click the on-screen 🙩! button at bottom-right of YouTube to view the live HUD!</p>
+  <div class="footer">Click the LiveTruth button on video to open fact sidebar.</div>
 </body>
 </html>

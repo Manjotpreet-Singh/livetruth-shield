@@ -1,92 +1,94 @@
 /* ==========================================================================
-   LiveTruth Shield - Ultra-Smooth Butter 60fps Material 3 Theme
-   GPU-Accelerated, Hardware-Composited, Zero-Jank Architecture
+   LiveTruth Shield — Professional Minimalist Design System
+   Sleek, Clean, Modern Swiss/Linear Tech Aesthetics
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  --g-font: "Google Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --g-body-font: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
-  
-  /* Google Gemini Signature Palette */
-  --g-blue: #4285F4;
-  --g-red: #EA4335;
-  --g-yellow: #FBBC04;
-  --g-green: #34A853;
-  --g-gemini-gradient: linear-gradient(135deg, #4285F4 0%, #9B72CB 50%, #D96570 100%);
-  
-  /* High-Performance Surface (Solid with subtle alpha for 60fps compositing) */
-  --g-surface: #1E1F20;
-  --g-surface-elevated: #282A2C;
-  --g-surface-card: #18191B;
-  --g-border: rgba(255, 255, 255, 0.1);
-  --g-border-hover: rgba(255, 255, 255, 0.22);
-  
+  --lt-font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --lt-mono: 'JetBrains Mono', monospace;
+
+  /* Refined Minimalist Palette */
+  --lt-bg: #090A0F;
+  --lt-surface: #12141A;
+  --lt-surface-hover: #181B23;
+  --lt-border: rgba(255, 255, 255, 0.08);
+  --lt-border-focus: rgba(255, 255, 255, 0.2);
+
+  /* Accents */
+  --lt-accent: #3B82F6;
+  --lt-accent-hover: #60A5FA;
+  --lt-green: #10B981;
+  --lt-red: #EF4444;
+  --lt-yellow: #F59E0B;
+
   /* Typography */
-  --g-text-primary: #F1F3F4;
-  --g-text-secondary: #BDC1C6;
-  --g-text-tertiary: #9AA0A6;
+  --lt-text-main: #FFFFFF;
+  --lt-text-muted: #94A3B8;
+  --lt-text-dim: #64748B;
 }
 
-/* 1. Floating Pill Button (Hardware accelerated transform) */
+/* 1. Floating Action Pill */
 #livetruth-btn {
   position: fixed;
   bottom: 24px;
   right: 24px;
   z-index: 999999;
-  background: var(--g-surface);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 28px;
-  padding: 10px 20px;
-  font-family: var(--g-font);
-  font-size: 13.5px;
+  background: rgba(18, 20, 26, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--lt-text-main);
+  border: 1px solid var(--lt-border);
+  border-radius: 30px;
+  padding: 10px 18px;
+  font-family: var(--lt-font);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   gap: 10px;
-  will-change: transform, box-shadow;
+  will-change: transform;
   transform: translateZ(0);
-  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease, background-color 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
 }
 
 #livetruth-btn:hover {
+  background: var(--lt-surface-hover);
+  border-color: var(--lt-border-focus);
   transform: translateY(-2px) translateZ(0);
-  background: var(--g-surface-elevated);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 15px rgba(66, 133, 244, 0.3);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.8);
 }
 
 #livetruth-btn:active {
-  transform: translateY(0) scale(0.97) translateZ(0);
+  transform: translateY(0) scale(0.98) translateZ(0);
 }
 
-/* 2. Glassmorphism Side Panel (GPU composited off-screen transition) */
+/* 2. Sleek Minimalist Sidebar */
 #livetruth-panel {
   position: fixed;
   top: 56px;
   right: 0;
-  width: 420px;
+  width: 400px;
   height: calc(100vh - 64px);
-  background: rgba(19, 19, 20, 0.96);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-left: 1px solid var(--g-border);
-  box-shadow: -10px 0 35px rgba(0, 0, 0, 0.7);
+  background: rgba(9, 10, 15, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-left: 1px solid var(--lt-border);
+  box-shadow: -15px 0 45px rgba(0, 0, 0, 0.7);
   z-index: 999998;
   display: flex;
   flex-direction: column;
-  font-family: var(--g-body-font);
+  font-family: var(--lt-font);
   will-change: transform;
   transform: translate3d(100%, 0, 0);
-  transition: transform 0.3s cubic-bezier(0.05, 0.7, 0.1, 1.0);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   border-top-left-radius: 16px;
   border-bottom-left-radius: 16px;
   overflow: hidden;
-  contain: content;
 }
 
 #livetruth-panel.open {
@@ -95,9 +97,9 @@
 
 /* 3. Panel Header */
 .lt-head {
-  padding: 14px 20px;
-  background: #1E1F20;
-  border-bottom: 1px solid var(--g-border);
+  padding: 16px 20px;
+  background: var(--lt-surface);
+  border-bottom: 1px solid var(--lt-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -106,37 +108,35 @@
 
 .lt-head h2 {
   margin: 0;
-  font-family: var(--g-font);
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
+  font-family: var(--lt-font);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lt-text-main);
   display: flex;
   align-items: center;
   gap: 8px;
   letter-spacing: -0.2px;
 }
 
-.lt-badge-gemini {
-  background: var(--g-gemini-gradient);
-  color: #fff;
-  font-family: var(--g-font);
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2.5px 8px;
-  border-radius: 10px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  box-shadow: 0 2px 6px rgba(155, 114, 203, 0.3);
+.lt-badge-status {
+  background: rgba(59, 130, 246, 0.12);
+  color: #60A5FA;
+  font-family: var(--lt-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.2px;
 }
 
-/* Sound Button Toggle */
+/* Audio Alert Button */
 .lt-sound-toggle {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--g-border);
-  color: var(--g-text-secondary);
-  border-radius: 18px;
-  padding: 5px 12px;
-  font-family: var(--g-font);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--lt-border);
+  color: var(--lt-text-muted);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-family: var(--lt-font);
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
@@ -147,64 +147,113 @@
 }
 
 .lt-sound-toggle.active {
-  background: rgba(52, 168, 83, 0.15);
-  color: #81C995;
-  border-color: rgba(52, 168, 83, 0.4);
+  background: rgba(16, 185, 129, 0.12);
+  color: #34D399;
+  border-color: rgba(16, 185, 129, 0.25);
 }
 
 .lt-sound-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Close Button */
 #lt-close {
   background: none;
   border: none;
-  color: var(--g-text-tertiary);
+  color: var(--lt-text-dim);
   cursor: pointer;
-  font-size: 18px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 #lt-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--lt-text-main);
 }
 
-/* 4. Instant Video Intel & Topic Context Card */
+/* 4. Minimalist Input Capsule */
+.lt-input-capsule {
+  margin: 14px 16px 8px 16px;
+  background: var(--lt-surface);
+  border: 1px solid var(--lt-border);
+  border-radius: 10px;
+  padding: 4px 6px 4px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.lt-input-capsule:focus-within {
+  border-color: var(--lt-accent);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.lt-input-capsule input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--lt-text-main);
+  font-family: var(--lt-font);
+  font-size: 12px;
+  outline: none;
+}
+
+.lt-input-capsule input::placeholder {
+  color: var(--lt-text-dim);
+}
+
+.lt-input-capsule button {
+  background: var(--lt-accent);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-family: var(--lt-font);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.lt-input-capsule button:hover {
+  background: var(--lt-accent-hover);
+}
+
+/* 5. Minimalist Score & Intel Container */
 #lt-intel-box {
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid var(--g-border);
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.015);
+  border-bottom: 1px solid var(--lt-border);
   flex-shrink: 0;
 }
 
 .lt-intel-tag {
-  font-family: var(--g-font);
+  font-family: var(--lt-mono);
   font-size: 10px;
-  font-weight: 700;
-  color: var(--g-blue);
+  font-weight: 500;
+  color: var(--lt-accent-hover);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
 #lt-video-title {
-  font-family: var(--g-font);
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--lt-text-main);
   line-height: 1.35;
-  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -212,15 +261,16 @@
 
 #lt-video-summary {
   font-size: 11.5px;
-  color: var(--g-text-secondary);
+  color: var(--lt-text-muted);
   line-height: 1.4;
+  margin-top: 3px;
 }
 
-/* 5. Google-Style Multi-Segment Score Bar */
+/* Meter */
 .lt-score-box {
-  padding: 10px 20px;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid var(--g-border);
+  padding: 10px 18px;
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--lt-border);
   flex-shrink: 0;
 }
 
@@ -228,34 +278,32 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--g-font);
-  font-size: 12px;
-  color: var(--g-text-secondary);
+  font-size: 11.5px;
+  color: var(--lt-text-muted);
 }
 
 .lt-score-bar-bg {
   width: 100%;
-  height: 6px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 4px;
   margin-top: 6px;
   overflow: hidden;
 }
 
 .lt-score-bar {
   height: 100%;
-  width: 72%;
-  background: linear-gradient(90deg, #EA4335, #FBBC04, #34A853);
-  border-radius: 8px;
+  width: 0%;
+  background: linear-gradient(90deg, #EF4444, #F59E0B, #10B981);
+  border-radius: 4px;
   will-change: width;
-  transition: width 0.6s cubic-bezier(0.2, 0, 0, 1);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 6. Clickable Truth Timeline (Google Chips Style) */
+/* 6. Timeline Track */
 .lt-timeline-box {
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.015);
-  border-bottom: 1px solid var(--g-border);
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--lt-border);
   flex-shrink: 0;
 }
 
@@ -263,17 +311,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--g-font);
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--g-text-tertiary);
+  font-size: 10px;
+  font-family: var(--lt-mono);
+  font-weight: 500;
+  color: var(--lt-text-dim);
   margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .lt-verdict-summary {
-  font-size: 10px;
   display: flex;
   gap: 8px;
 }
@@ -283,134 +329,117 @@
   gap: 6px;
   overflow-x: auto;
   padding: 2px 0 4px 0;
-  scrollbar-width: thin;
-  overscroll-behavior-x: contain;
+  scrollbar-width: none;
 }
 
 .lt-timeline-track::-webkit-scrollbar {
-  height: 3px;
-}
-.lt-timeline-track::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
+  display: none;
 }
 
 .lt-timeline-pin {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 14px;
-  font-family: var(--g-font);
-  font-size: 10.5px;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-family: var(--lt-mono);
+  font-size: 10px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: all 0.15s ease;
   border: 1px solid transparent;
-  user-select: none;
 }
 
 .lt-timeline-pin.FALSE {
-  background: rgba(234, 67, 53, 0.12);
-  color: #F28B82;
-  border-color: rgba(234, 67, 53, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  color: #F87171;
+  border-color: rgba(239, 68, 68, 0.25);
 }
 .lt-timeline-pin.FALSE:hover {
-  background: #EA4335;
+  background: #EF4444;
   color: #fff;
-  transform: translateY(-1px);
 }
 
 .lt-timeline-pin.VERIFIED {
-  background: rgba(52, 168, 83, 0.12);
-  color: #81C995;
-  border-color: rgba(52, 168, 83, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+  color: #34D399;
+  border-color: rgba(16, 185, 129, 0.25);
 }
 .lt-timeline-pin.VERIFIED:hover {
-  background: #34A853;
+  background: #10B981;
   color: #fff;
-  transform: translateY(-1px);
 }
 
 .lt-timeline-pin.MISLEADING {
-  background: rgba(251, 188, 4, 0.12);
-  color: #FDD663;
-  border-color: rgba(251, 188, 4, 0.3);
+  background: rgba(245, 158, 11, 0.1);
+  color: #FBBF24;
+  border-color: rgba(245, 158, 11, 0.25);
 }
 .lt-timeline-pin.MISLEADING:hover {
-  background: #FBBC04;
+  background: #F59E0B;
   color: #000;
-  transform: translateY(-1px);
 }
 
-/* 7. Fact Cards Feed (Smooth scrolling, zero layout thrashing) */
+/* 7. Feed & Fact Cards */
 .lt-cards-feed {
   flex: 1;
   overflow-y: auto;
-  padding: 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   overscroll-behavior-y: contain;
-  scroll-behavior: smooth;
 }
 
 .lt-cards-feed::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 .lt-cards-feed::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
 }
 
 .lt-card {
-  background: var(--g-surface-card);
-  border-radius: 12px;
+  background: var(--lt-surface);
+  border-radius: 10px;
   padding: 14px;
-  border: 1px solid var(--g-border);
+  border: 1px solid var(--lt-border);
   display: flex;
   flex-direction: column;
   gap: 8px;
   position: relative;
-  will-change: transform, border-color, box-shadow;
-  transform: translateZ(0);
-  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease, box-shadow 0.2s ease;
-  contain: paint layout;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .lt-card:hover {
-  border-color: var(--g-border-hover);
-  background: #1C1D20;
+  border-color: var(--lt-border-focus);
 }
 
-/* Active Video Playback Highlight (Butter smooth hardware accelerated scale) */
 .lt-card.active-playback {
-  border-color: var(--g-blue);
-  box-shadow: 0 0 20px rgba(66, 133, 244, 0.35);
-  transform: scale(1.015) translateZ(0);
-  background: #1B202A;
+  border-color: var(--lt-accent);
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.3);
+  transform: scale(1.01);
 }
 
 .lt-card.active-playback::before {
-  content: "⚡ SPEAKING NOW";
+  content: "ACTIVE";
   position: absolute;
-  top: -9px;
+  top: -8px;
   right: 12px;
-  background: var(--g-blue);
+  background: var(--lt-accent);
   color: #fff;
-  font-family: var(--g-font);
-  font-size: 8.5px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 5px;
+  font-family: var(--lt-mono);
+  font-size: 8px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.4);
 }
 
-.lt-card.FALSE { border-left: 4px solid var(--g-red); }
-.lt-card.VERIFIED { border-left: 4px solid var(--g-green); }
-.lt-card.MISLEADING { border-left: 4px solid var(--g-yellow); }
+.lt-card.FALSE { border-left: 3px solid var(--lt-red); }
+.lt-card.VERIFIED { border-left: 3px solid var(--lt-green); }
+.lt-card.MISLEADING { border-left: 3px solid var(--lt-yellow); }
 
 .lt-card-top {
   display: flex;
@@ -419,69 +448,68 @@
 }
 
 .lt-badge {
-  font-family: var(--g-font);
-  font-size: 9.5px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
+  font-family: var(--lt-mono);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
 }
 
-.lt-badge.VERIFIED { background: rgba(52, 168, 83, 0.15); color: #81C995; }
-.lt-badge.FALSE { background: rgba(234, 67, 53, 0.15); color: #F28B82; }
-.lt-badge.MISLEADING { background: rgba(251, 188, 4, 0.15); color: #FDD663; }
+.lt-badge.VERIFIED { background: rgba(16, 185, 129, 0.12); color: #34D399; }
+.lt-badge.FALSE { background: rgba(239, 68, 68, 0.12); color: #F87171; }
+.lt-badge.MISLEADING { background: rgba(245, 158, 11, 0.12); color: #FBBF24; }
 
 .lt-time-btn {
-  background: rgba(255, 255, 255, 0.06);
-  color: #8AB4F8;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--lt-text-muted);
   border: none;
-  font-family: var(--g-font);
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 10px;
+  font-family: var(--lt-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .lt-time-btn:hover {
-  background: var(--g-blue);
+  background: var(--lt-accent);
   color: #fff;
 }
 
 .lt-quote {
-  font-size: 13px;
-  color: var(--g-text-primary);
+  font-size: 12.5px;
+  color: var(--lt-text-main);
   font-style: italic;
-  line-height: 1.4;
+  line-height: 1.45;
   border-left: 2px solid rgba(255, 255, 255, 0.12);
   padding-left: 8px;
 }
 
 .lt-explanation {
   font-size: 12px;
-  color: var(--g-text-secondary);
-  line-height: 1.42;
+  color: var(--lt-text-muted);
+  line-height: 1.45;
 }
 
 .lt-source {
-  font-size: 11px;
-  color: var(--g-text-tertiary);
+  font-size: 10.5px;
+  color: var(--lt-text-dim);
 }
 
 .lt-source strong {
-  color: #8AB4F8;
+  color: var(--lt-accent-hover);
 }
 
-/* 8. Research Drawer */
+/* 8. Evidence Drawer */
 .lt-research-btn {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--g-border);
-  color: #8AB4F8;
-  border-radius: 8px;
-  padding: 7px 10px;
-  font-family: var(--g-font);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--lt-border);
+  color: var(--lt-text-muted);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: var(--lt-font);
   font-size: 10.5px;
   font-weight: 500;
   cursor: pointer;
@@ -489,22 +517,21 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 2px;
-  transition: background 0.15s ease, border-color 0.15s ease;
-  user-select: none;
+  transition: all 0.15s ease;
 }
 
 .lt-research-btn:hover {
-  background: rgba(66, 133, 244, 0.12);
-  border-color: rgba(66, 133, 244, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--lt-text-main);
 }
 
 .lt-research-drawer {
-  background: #151618;
-  border: 1px solid var(--g-border);
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--lt-border);
+  border-radius: 6px;
   padding: 10px 12px;
   font-size: 11px;
-  color: var(--g-text-secondary);
+  color: var(--lt-text-muted);
   line-height: 1.45;
   display: none;
   margin-top: 4px;
@@ -516,61 +543,9 @@
 
 .lt-research-drawer h4 {
   margin: 0 0 6px 0;
-  font-family: var(--g-font);
-  font-size: 10.5px;
-  color: #81C995;
+  font-family: var(--lt-mono);
+  font-size: 9.5px;
+  color: #34D399;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-/* Custom Input Bar inside Extension Sidebar */
-.lt-input-capsule {
-  margin: 10px 14px 4px 14px;
-  background: #18191B;
-  border: 1px solid var(--g-border);
-  border-radius: 22px;
-  padding: 5px 6px 5px 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.lt-input-capsule:focus-within {
-  border-color: var(--g-blue);
-  box-shadow: 0 0 12px rgba(66, 133, 244, 0.25);
-  background: #202124;
-}
-
-.lt-input-capsule input {
-  flex: 1;
-  background: none;
-  border: none;
-  color: #fff;
-  font-family: var(--g-font);
-  font-size: 12px;
-  outline: none;
-}
-
-.lt-input-capsule input::placeholder {
-  color: var(--g-text-tertiary);
-}
-
-.lt-input-capsule button {
-  background: var(--g-blue);
-  color: #fff;
-  border: none;
-  border-radius: 16px;
-  padding: 6px 14px;
-  font-family: var(--g-font);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  white-space: nowrap;
-}
-
-.lt-input-capsule button:hover {
-  background: #5A95F5;
 }

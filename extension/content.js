@@ -8,7 +8,6 @@
   let lastTimeUpdate = 0;
   let cachedVideoElement = null;
 
-  // Optimized Audio Chime using shared AudioContext
   let audioCtxInstance = null;
   function playAlertChime() {
     if (!soundEnabled) return;
@@ -18,9 +17,7 @@
         if (!AudioCtx) return;
         audioCtxInstance = new AudioCtx();
       }
-      if (audioCtxInstance.state === "suspended") {
-        audioCtxInstance.resume();
-      }
+      if (audioCtxInstance.state === "suspended") audioCtxInstance.resume();
       const osc = audioCtxInstance.createOscillator();
       const gain = audioCtxInstance.createGain();
       osc.type = "sine";
@@ -51,9 +48,7 @@
         break;
       }
     }
-    if (!chosen && videos.length > 0) {
-      chosen = videos[0];
-    }
+    if (!chosen && videos.length > 0) chosen = videos[0];
     cachedVideoElement = chosen;
     return chosen;
   }
@@ -63,94 +58,77 @@
     const video = getActiveVideoElement();
     if (!video && !window.location.hostname.includes("youtube.com")) return;
 
-    // 1. Floating Pill Button (Google Gemini Style)
+    // 1. Sleek Floating Pill
     const btn = document.createElement("button");
     btn.id = "livetruth-btn";
     btn.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="filter: drop-shadow(0 0 4px rgba(66,133,244,0.5));">
-        <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" fill="url(#gShieldGrad)"/>
-        <path d="M10 15.5l-3.5-3.5 1.41-1.41L10 12.67l5.59-5.59L17 8.5l-7 7z" fill="#fff"/>
-        <defs>
-          <linearGradient id="gShieldGrad" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#4285F4"/>
-            <stop offset="0.5" stop-color="#9B72CB"/>
-            <stop offset="1" stop-color="#34A853"/>
-          </linearGradient>
-        </defs>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.2">
+        <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/>
+        <path d="M10 15.5l-3.5-3.5 1.41-1.41L10 12.67l5.59-5.59L17 8.5l-7 7z" fill="#3B82F6"/>
       </svg>
       <span>LiveTruth</span>
-      <span class="lt-badge-gemini" style="font-size:8px; padding:2px 6px;">Universal AI</span>
+      <span class="lt-badge-status">READY</span>
     `;
     btn.addEventListener("click", togglePanel);
     document.body.appendChild(btn);
 
-    // 2. Google Material 3 Sidebar Panel
+    // 2. Minimalist Sidebar Panel
     const panel = document.createElement("div");
     panel.id = "livetruth-panel";
     panel.innerHTML = `
       <div class="lt-head">
         <h2>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" fill="#4285F4"/>
-            <path d="M10 15.5l-3.5-3.5 1.41-1.41L10 12.67l5.59-5.59L17 8.5l-7 7z" fill="#fff"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.2">
+            <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/>
           </svg>
-          LiveTruth Shield
-          <span class="lt-badge-gemini">Universal</span>
+          LiveTruth
+          <span class="lt-badge-status" id="lt-status-badge">AI Active</span>
         </h2>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button id="lt-sound-btn" class="lt-sound-toggle active" title="Toggle audio alert on false claims">🔔 Audio Alert</button>
-          <button id="lt-close" title="Close LiveTruth Sidebar">✕</button>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button id="lt-sound-btn" class="lt-sound-toggle active" title="Toggle audio alert">🔔 Sound</button>
+          <button id="lt-close" title="Close">✕</button>
         </div>
       </div>
 
-      <!-- Pastable Link & Manual Verification Input Bar -->
+      <!-- Quick URL Test Bar -->
       <div class="lt-input-capsule">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E918F" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input type="text" id="lt-manual-url" placeholder="Paste any video link or claim to verify...">
-        <button id="lt-manual-btn">Verify</button>
+        <input type="text" id="lt-manual-url" placeholder="Test any video URL...">
+        <button id="lt-manual-btn">Test</button>
       </div>
 
-      <!-- Instant Video Intel & Scientific Context -->
+      <!-- Topic Intel -->
       <div id="lt-intel-box">
-        <div class="lt-intel-tag">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-          </svg>
-          Universal Video Intel & Topic Context
-        </div>
-        <div id="lt-video-title">Analyzing video claims...</div>
-        <div id="lt-video-summary">Cross-referencing video statements with Google Gemini Knowledge Grounding & authoritative databases...</div>
+        <div class="lt-intel-tag">Topic Intel</div>
+        <div id="lt-video-title">Ready</div>
+        <div id="lt-video-summary">Play video or enter URL to audit claims.</div>
       </div>
 
-      <!-- Overall Reliability Score Bar -->
+      <!-- Reliability Score Bar -->
       <div class="lt-score-box">
         <div class="lt-score-header">
-          <span>Overall Truth Reliability</span>
-          <strong id="lt-score-val" style="color:#81C995; font-weight:700;">Analyzing...</strong>
+          <span>Truth Reliability</span>
+          <strong id="lt-score-val" style="color:#10B981; font-family:var(--lt-mono);">--</strong>
         </div>
         <div class="lt-score-bar-bg">
           <div id="lt-score-bar" class="lt-score-bar"></div>
         </div>
       </div>
 
-      <!-- Clickable Truth Timeline Track (Google Chips) -->
+      <!-- Timeline Track -->
       <div class="lt-timeline-box">
         <div class="lt-timeline-header">
-          <span>⏱️ Clickable Truth Timeline</span>
+          <span>Timeline</span>
           <div id="lt-verdict-summary" class="lt-verdict-summary"></div>
         </div>
         <div id="lt-timeline-track" class="lt-timeline-track">
-          <span style="color:#8E918F; font-size:11px;">Scanning video timeline...</span>
+          <span style="color:var(--lt-text-dim); font-size:10px;">Waiting for input...</span>
         </div>
       </div>
 
-      <!-- Fact Claims Stream with Live Playback Tracking -->
+      <!-- Claims Feed -->
       <div id="lt-feed" class="lt-cards-feed">
-        <div style="text-align:center; color:#8E918F; margin-top:35px; font-size:12.5px;">
-          Scanning video audio & fact-checking claims...
+        <div style="text-align:center; color:var(--lt-text-dim); margin-top:40px; font-size:12px;">
+          No claims analyzed yet. Play video to test.
         </div>
       </div>
     `;
@@ -159,14 +137,21 @@
     const closeBtn = document.getElementById("lt-close");
     if (closeBtn) closeBtn.addEventListener("click", togglePanel);
 
+    const soundBtn = document.getElementById("lt-sound-btn");
+    if (soundBtn) {
+      soundBtn.addEventListener("click", () => {
+        soundEnabled = !soundEnabled;
+        soundBtn.innerText = soundEnabled ? "🔔 Sound" : "🔕 Muted";
+        soundBtn.classList.toggle("active", soundEnabled);
+      });
+    }
+
     const manualBtn = document.getElementById("lt-manual-btn");
     const manualInput = document.getElementById("lt-manual-url");
     if (manualBtn && manualInput) {
       manualBtn.addEventListener("click", () => {
         const val = manualInput.value.trim();
-        if (val) {
-          fetchUniversalAnalysis(val, val);
-        }
+        if (val) fetchUniversalAnalysis(val, val);
       });
       manualInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
@@ -176,18 +161,7 @@
       });
     }
 
-    const soundBtn = document.getElementById("lt-sound-btn");
-    if (soundBtn) {
-      soundBtn.addEventListener("click", () => {
-        soundEnabled = !soundEnabled;
-        soundBtn.innerText = soundEnabled ? "🔔 Audio Alert" : "🔕 Muted";
-        soundBtn.classList.toggle("active", soundEnabled);
-      });
-    }
-
-    // Panel Event Delegation (Zero memory leak click router)
     panel.addEventListener("click", (e) => {
-      // 1. Timeline Pin Click
       const pin = e.target.closest(".lt-timeline-pin");
       if (pin) {
         const seconds = parseInt(pin.getAttribute("data-seconds"), 10);
@@ -204,7 +178,6 @@
         return;
       }
 
-      // 2. Timestamp Jump inside Card
       const timeBtn = e.target.closest(".lt-time-btn");
       if (timeBtn) {
         const seconds = parseInt(timeBtn.getAttribute("data-seconds"), 10);
@@ -212,7 +185,6 @@
         return;
       }
 
-      // 3. Research Evidence Drawer Toggle
       const researchBtn = e.target.closest(".lt-research-btn");
       if (researchBtn) {
         const targetId = researchBtn.getAttribute("data-target");
@@ -220,7 +192,7 @@
         if (drawer) {
           drawer.classList.toggle("open");
           const isDrawerOpen = drawer.classList.contains("open");
-          researchBtn.querySelector(".drawer-arrow").innerText = isDrawerOpen ? "▲ Hide Evidence" : "▼ View Evidence";
+          researchBtn.querySelector(".drawer-arrow").innerText = isDrawerOpen ? "▲" : "▼";
         }
       }
     });
@@ -229,7 +201,6 @@
     detectUniversalVideoChange();
   }
 
-  // Butter-Smooth Throttled Video Playback Sync (60fps requestAnimationFrame)
   function attachUniversalVideoSync() {
     const video = getActiveVideoElement();
     if (!video || video.hasAttribute("data-lt-sync")) return;
@@ -238,7 +209,6 @@
     let isTicking = false;
     video.addEventListener("timeupdate", () => {
       const now = performance.now();
-      // Throttle to 4 times a second max (250ms) to save CPU & GPU overhead
       if (now - lastTimeUpdate < 250) return;
       lastTimeUpdate = now;
 
@@ -264,7 +234,6 @@
       }
     }
 
-    // Only update DOM if the active card has actually changed
     if (foundIndex === currentActiveIndex) return;
 
     if (currentActiveIndex !== -1) {
@@ -292,9 +261,7 @@
   function togglePanel() {
     isOpen = !isOpen;
     const panel = document.getElementById("livetruth-panel");
-    if (panel) {
-      panel.classList.toggle("open", isOpen);
-    }
+    if (panel) panel.classList.toggle("open", isOpen);
   }
 
   function detectUniversalVideoChange() {
@@ -325,29 +292,27 @@
     const titleEl = document.getElementById("lt-video-title");
 
     let cleanTitle = document.title.replace(" - YouTube", "").replace(" | X", "").replace(" • Instagram", "");
-    if (titleEl && cleanTitle) {
-      titleEl.innerText = cleanTitle;
-    }
+    if (titleEl && cleanTitle) titleEl.innerText = cleanTitle;
 
     if (feed) {
-      feed.innerHTML = `<div style="text-align:center; color:#8E918F; font-size:12.5px; margin-top:35px;">⚡ Fact-checking video with Google Gemini Knowledge Grounding...</div>`;
+      feed.innerHTML = `<div style="text-align:center; color:var(--lt-text-dim); font-size:12px; margin-top:35px;">Auditing claims with Gemini...</div>`;
     }
 
     try {
       chrome.runtime.sendMessage({ action: "checkVideo", videoId: (videoId || pageUrl), title: cleanTitle }, (response) => {
-        if (response && response.success && response.data) {
+        if (response && response.success && response.data && response.data.cards && response.data.cards.length > 0) {
           renderCards(response.data.cards, response.data.score, response.data.intel);
         } else {
-          renderDemoFallback();
+          renderEmptyState();
         }
       });
     } catch (err) {
-      renderDemoFallback();
+      renderEmptyState();
     }
   }
 
   function renderCards(cards, score, intel) {
-    score = score || 72;
+    score = score || 0;
     currentCards = cards || [];
     currentActiveIndex = -1;
     const feed = document.getElementById("lt-feed");
@@ -357,18 +322,15 @@
     const trackEl = document.getElementById("lt-timeline-track");
     const verdictSummary = document.getElementById("lt-verdict-summary");
 
-    if (scoreVal) scoreVal.innerText = `${score}% Accurate`;
+    if (scoreVal) scoreVal.innerText = `${score}%`;
     if (scoreBar) scoreBar.style.width = `${score}%`;
 
     if (summaryEl) {
-      summaryEl.innerText = intel || "Video Topic & Scientific Overview: Spoken claims cross-referenced with peer-reviewed medical and factual databases.";
+      summaryEl.innerText = intel || "Analysis complete.";
     }
 
-    // 1. Render Google Chips Style Clickable Timeline
     if (trackEl && cards && cards.length > 0) {
-      let falseCount = 0;
-      let verifiedCount = 0;
-      let misleadingCount = 0;
+      let falseCount = 0, verifiedCount = 0, misleadingCount = 0;
 
       trackEl.innerHTML = cards.map((c, idx) => {
         const v = (c.verdict || "VERIFIED").toUpperCase();
@@ -376,10 +338,8 @@
         else if (v === "VERIFIED" || v === "TRUE") verifiedCount++;
         else misleadingCount++;
 
-        const dot = (v === "FALSE") ? "🔴" : ((v === "VERIFIED" || v === "TRUE") ? "🟢" : "🟡");
         return `
-          <button class="lt-timeline-pin ${v}" data-seconds="${c.seconds}" data-card="card-${idx}" title="Jump to ${c.timestamp}: ${c.quote}">
-            <span>${dot}</span>
+          <button class="lt-timeline-pin ${v}" data-seconds="${c.seconds}" data-card="card-${idx}" title="${c.timestamp}: ${c.quote}">
             <span>${c.timestamp}</span>
           </button>
         `;
@@ -387,14 +347,13 @@
 
       if (verdictSummary) {
         verdictSummary.innerHTML = `
-          <span style="color:#F28B82; font-weight:600;">🔴 ${falseCount} False</span>
-          <span style="color:#81C995; font-weight:600;">🟢 ${verifiedCount} Verified</span>
-          <span style="color:#FDD663; font-weight:600;">🟡 ${misleadingCount} Misleading</span>
+          <span style="color:#F87171; font-family:var(--lt-mono); font-size:10px;">${falseCount} F</span>
+          <span style="color:#34D399; font-family:var(--lt-mono); font-size:10px;">${verifiedCount} V</span>
+          <span style="color:#FBBF24; font-family:var(--lt-mono); font-size:10px;">${misleadingCount} M</span>
         `;
       }
     }
 
-    // 2. Render Google Material 3 Fact Cards
     if (feed && cards) {
       feed.innerHTML = cards.map((c, idx) => {
         const v = (c.verdict || "VERIFIED").toUpperCase();
@@ -402,29 +361,21 @@
           <div id="card-${idx}" class="lt-card ${v}">
             <div class="lt-card-top">
               <span class="lt-badge ${v}">${v}</span>
-              <button class="lt-time-btn" data-seconds="${c.seconds}">⏱️ ${c.timestamp}</button>
+              <button class="lt-time-btn" data-seconds="${c.seconds}">${c.timestamp}</button>
             </div>
             <div class="lt-quote">"${c.quote}"</div>
             <div class="lt-explanation">${c.explanation}</div>
-            <div class="lt-source">Primary Authority: <strong>${c.source}</strong></div>
+            <div class="lt-source">Authority: <strong>${c.source}</strong></div>
 
-            <!-- Research Evidence & Origin Toggle Button -->
             <button class="lt-research-btn" data-target="drawer-${idx}">
-              <span style="display:flex; align-items:center; gap:6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                </svg>
-                Verified Research & Primary Origin
-              </span>
-              <span class="drawer-arrow">▼ View Evidence</span>
+              <span>Evidence & Source</span>
+              <span class="drawer-arrow">▼</span>
             </button>
             
             <div id="drawer-${idx}" class="lt-research-drawer">
-              <h4>📚 Peer-Reviewed Research Dossier:</h4>
-              <div style="margin-bottom:6px;"><strong>Citation:</strong> ${c.researchPaper || c.source + " (Peer-Reviewed Meta-Analysis)"}</div>
-              <div style="margin-bottom:6px;"><strong>Empirical Finding / Fact Check:</strong> ${c.researchSummary || "Empirical clinical trials demonstrate direct contradiction with common popular folklore."}</div>
-              <div style="color:#8AB4F8; font-size:11px;"><strong>Data Origin:</strong> ${c.dataOrigin || "National Center for Biotechnology Information (NCBI) / PubMed Central Database"}</div>
+              <div style="margin-bottom:4px;"><strong>Citation:</strong> ${c.researchPaper || c.source}</div>
+              <div style="margin-bottom:4px;"><strong>Refutation / Finding:</strong> ${c.researchSummary || "Empirical review."}</div>
+              <div style="color:#60A5FA; font-size:10.5px;"><strong>Origin:</strong> ${c.dataOrigin || "Primary Academic Repository"}</div>
             </div>
           </div>
         `;
@@ -432,7 +383,7 @@
     }
   }
 
-  function renderDemoFallback() {
+  function renderEmptyState() {
     const feed = document.getElementById("lt-feed");
     const summaryEl = document.getElementById("lt-video-summary");
     const scoreVal = document.getElementById("lt-score-val");
@@ -440,26 +391,21 @@
     const trackEl = document.getElementById("lt-timeline-track");
     const verdictSummary = document.getElementById("lt-verdict-summary");
 
-    if (scoreVal) scoreVal.innerText = "Ready to Verify";
+    if (scoreVal) scoreVal.innerText = "--";
     if (scoreBar) scoreBar.style.width = "0%";
-    if (trackEl) trackEl.innerHTML = "<span style='color:#8E918F; font-size:11px;'>Press play or paste link to analyze facts...</span>";
+    if (trackEl) trackEl.innerHTML = "<span style='color:var(--lt-text-dim); font-size:10px;'>Ready</span>";
     if (verdictSummary) verdictSummary.innerHTML = "";
-    if (summaryEl) summaryEl.innerText = "Paste any video link above or play the video to start real-time verification.";
+    if (summaryEl) summaryEl.innerText = "Play video or paste link to start.";
     if (feed) {
       feed.innerHTML = `
-        <div style="text-align:center; padding: 36px 16px; color:#8E918F;">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4285F4" stroke-width="1.8" style="margin: 0 auto 10px auto;">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polygon points="10 8 16 12 10 16 10 8" fill="#4285F4"></polygon>
-          </svg>
-          <div style="color:#fff; font-family:var(--g-font); font-size:13.5px; font-weight:600; margin-bottom:6px;">Waiting for Video Playback</div>
-          <div style="font-size:12px; line-height:1.45;">Play the current video or paste any video link in the bar above to audit all spoken claims with Gemini.</div>
+        <div style="text-align:center; padding: 30px 14px; color:var(--lt-text-dim);">
+          <div style="color:var(--lt-text-main); font-size:13px; font-weight:500; margin-bottom:4px;">Ready to Audit</div>
+          <div style="font-size:11.5px;">Play video or paste link above to test claims.</div>
         </div>
       `;
     }
   }
 
-  // Smooth DOM Observer instead of aggressive polling
   let domCheckTimeout = null;
   const observer = new MutationObserver(() => {
     if (domCheckTimeout) return;
@@ -470,10 +416,7 @@
     }, 400);
   });
 
-  observer.observe(document.body || document.documentElement, {
-    childList: true,
-    subtree: true
-  });
+  observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
 
   window.addEventListener("yt-navigate-finish", () => {
     setupExtension();

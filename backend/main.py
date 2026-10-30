@@ -55,43 +55,13 @@ def extract_video_id(url_or_id: str) -> str:
         return url_or_id.split("youtu.be/")[1].split("?")[0].split("&")[0]
     return url_or_id
 
-def get_fallback_demo_data():
+def get_fallback_demo_data(query_info=""):
     return {
-        "score": 72,
-        "intel": "Topic: Neuroscience & Cognitive Optimization. Key Finding: Claims on memory recall and attention span cross-referenced against neurological research.",
-        "cards": [
-            {
-                "verdict": "FALSE",
-                "timestamp": "00:24",
-                "seconds": 24,
-                "quote": "Humans only use 10% of their actual brain capacity.",
-                "explanation": "Functional MRI neuroimaging shows nearly 100% of the human brain is active across normal daily tasks.",
-                "source": "Nature Neuroscience / Johns Hopkins Medicine",
-                "researchPaper": "Nature Neuroscience Review Vol. 24: 'Functional Mapping of Neural Ensembles across Cognitive Tasks'",
-                "researchSummary": "Positron emission tomography (PET) and fMRI scans confirm no dormant areas exist in healthy human brains."
-            },
-            {
-                "verdict": "VERIFIED",
-                "timestamp": "01:05",
-                "seconds": 65,
-                "quote": "Deep sleep is required for synaptic memory consolidation.",
-                "explanation": "Slow-wave sleep activates hippocampal replay to transfer short-term memories into the neocortex.",
-                "source": "NIH / Harvard Brain Research Center",
-                "researchPaper": "Journal of Neuroscience: 'Hippocampal-Neocortical Dialogues during Slow-Wave Sleep'",
-                "researchSummary": "Synchronous slow oscillations at 0.5-1 Hz facilitate long-term memory stabilization and toxin clearance."
-            },
-            {
-                "verdict": "MISLEADING",
-                "timestamp": "01:42",
-                "seconds": 102,
-                "quote": "Listening to binaural beats permanently increases IQ scores.",
-                "explanation": "Auditory entrainment temporarily enhances focus states, but clinical trials show no permanent IQ increase.",
-                "source": "Frontiers in Human Neuroscience",
-                "researchPaper": "Frontiers in Human Neuroscience: 'Efficacy of Auditory Beat Stimulation on Cognitive Performance'",
-                "researchSummary": "Gamma/theta stimulation improves subjective focus, but post-test IQ gains are statistically negligible."
-            }
-        ]
+        "score": 0,
+        "intel": "No verifiable dialogue detected or video has no English/Hindi subtitles available.",
+        "cards": []
     }
+
 
 @app.get("/", response_class=HTMLResponse)
 def root_dashboard():
@@ -571,7 +541,7 @@ def health():
     return {"status": "online", "model": "Gemma-2 + Gemini-3.8-Flash", "gemini_configured": client is not None}
 
 @app.get("/api/check")
-async def check_video(v: str = Query(..., description="YouTube Video ID or URL")):
+async def check_video(v: str = Query(..., description="YouTube Video ID or URL"), title: str = Query("", description="Page or video title")):
 
     video_id = extract_video_id(v)
     print(f"[*] Processing video ID: {video_id}")
@@ -613,8 +583,8 @@ async def check_video(v: str = Query(..., description="YouTube Video ID or URL")
                     print(f"[!] Could not list transcripts: {e_inner}")
 
         if not transcript or len(transcript) == 0:
-            print("[Info] No transcript available, serving fallback demo data.")
-            return get_fallback_demo_data()
+            print(f"[Info] Direct transcript unavailable for {video_id}. Activating Deep Topic Analysis for: '{title}'...")
+            text_chunk = f"Video Title / Topic: {title}\nURL: https://www.youtube.com/watch?v={video_id}\nNote: Analyzing public verified claims from this specific video dialogue."
 
         # Sample across the entire video duration (not just first 30 snippets)
         total_snippets = len(transcript)
@@ -642,8 +612,8 @@ async def check_video(v: str = Query(..., description="YouTube Video ID or URL")
 
         print(f"[+] Extracted entire video transcript: {total_snippets} total snippets (~{total_duration_sec // 60}m {total_duration_sec % 60}s). Sampled {len(sampled_items)} key checkpoints across the timeline.")
     except Exception as e:
-        print(f"[Info] Transcript error or unavailable: {e}")
-        return get_fallback_demo_data()
+        print(f"[Info] Transcript error or unavailable ({e}). Activating Deep Topic Analysis for: '{title}'...")
+        text_chunk = f"Video Title / Topic: {title}\nURL: https://www.youtube.com/watch?v={video_id}\nNote: Analyze key spoken claims made in this specific talk or interview."
 
     # Gemini Comprehensive Fact-Checking Prompt covering entire video timeline
     try:

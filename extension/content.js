@@ -103,6 +103,16 @@
         </div>
       </div>
 
+      <!-- Pastable Link & Manual Verification Input Bar -->
+      <div class="lt-input-capsule">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E918F" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="lt-manual-url" placeholder="Paste any video link or claim to verify...">
+        <button id="lt-manual-btn">Verify</button>
+      </div>
+
       <!-- Instant Video Intel & Scientific Context -->
       <div id="lt-intel-box">
         <div class="lt-intel-tag">
@@ -148,6 +158,23 @@
 
     const closeBtn = document.getElementById("lt-close");
     if (closeBtn) closeBtn.addEventListener("click", togglePanel);
+
+    const manualBtn = document.getElementById("lt-manual-btn");
+    const manualInput = document.getElementById("lt-manual-url");
+    if (manualBtn && manualInput) {
+      manualBtn.addEventListener("click", () => {
+        const val = manualInput.value.trim();
+        if (val) {
+          fetchUniversalAnalysis(val, val);
+        }
+      });
+      manualInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const val = manualInput.value.trim();
+          if (val) fetchUniversalAnalysis(val, val);
+        }
+      });
+    }
 
     const soundBtn = document.getElementById("lt-sound-btn");
     if (soundBtn) {
@@ -307,7 +334,7 @@
     }
 
     try {
-      chrome.runtime.sendMessage({ action: "checkVideo", videoId: videoId || pageUrl }, (response) => {
+      chrome.runtime.sendMessage({ action: "checkVideo", videoId: (videoId || pageUrl), title: cleanTitle }, (response) => {
         if (response && response.success && response.data) {
           renderCards(response.data.cards, response.data.score, response.data.intel);
         } else {
@@ -406,41 +433,30 @@
   }
 
   function renderDemoFallback() {
-    renderCards([
-      {
-        verdict: "FALSE",
-        timestamp: "00:24",
-        seconds: 24,
-        quote: "Humans only use 10% of their actual brain capacity.",
-        explanation: "Functional MRI neuroimaging shows nearly 100% of the human brain is active across normal daily tasks.",
-        source: "Nature Neuroscience / Johns Hopkins Medicine",
-        researchPaper: "Nature Neuroscience Review Vol. 24: 'Functional Mapping of Neural Ensembles across Cognitive Tasks'",
-        researchSummary: "Positron emission tomography (PET) and fMRI scans confirm no dormant areas exist in healthy human brains.",
-        dataOrigin: "PubMed Central / Nature Neuroscience"
-      },
-      {
-        verdict: "VERIFIED",
-        timestamp: "01:05",
-        seconds: 65,
-        quote: "Deep sleep is required for synaptic memory consolidation.",
-        explanation: "Slow-wave sleep activates hippocampal replay to transfer short-term memories into the neocortex.",
-        source: "NIH / Harvard Brain Research Center",
-        researchPaper: "Journal of Neuroscience: 'Hippocampal-Neocortical Dialogues during Slow-Wave Sleep'",
-        researchSummary: "Synchronous slow oscillations at 0.5-1 Hz facilitate long-term memory stabilization and toxin clearance via glymphatic system.",
-        dataOrigin: "National Institutes of Health (NIH) Database"
-      },
-      {
-        verdict: "MISLEADING",
-        timestamp: "01:42",
-        seconds: 102,
-        quote: "Listening to binaural beats permanently increases IQ scores.",
-        explanation: "Auditory entrainment temporarily enhances focus states, but clinical trials show no permanent IQ increase.",
-        source: "Frontiers in Human Neuroscience",
-        researchPaper: "Frontiers in Human Neuroscience: 'Efficacy of Auditory Beat Stimulation on Cognitive Performance'",
-        researchSummary: "Gamma/theta stimulation improves subjective focus and working memory efficiency during listening, but post-test IQ gains are statistically negligible.",
-        dataOrigin: "Cochrane Systematic Reviews / PubMed"
-      }
-    ], 72, "Video Topic & Scientific Context: Cognitive Science & Brain Optimization. Core memory and sleep principles are verified, but brain capacity exaggerations lack clinical trial replication.");
+    const feed = document.getElementById("lt-feed");
+    const summaryEl = document.getElementById("lt-video-summary");
+    const scoreVal = document.getElementById("lt-score-val");
+    const scoreBar = document.getElementById("lt-score-bar");
+    const trackEl = document.getElementById("lt-timeline-track");
+    const verdictSummary = document.getElementById("lt-verdict-summary");
+
+    if (scoreVal) scoreVal.innerText = "Ready to Verify";
+    if (scoreBar) scoreBar.style.width = "0%";
+    if (trackEl) trackEl.innerHTML = "<span style='color:#8E918F; font-size:11px;'>Press play or paste link to analyze facts...</span>";
+    if (verdictSummary) verdictSummary.innerHTML = "";
+    if (summaryEl) summaryEl.innerText = "Paste any video link above or play the video to start real-time verification.";
+    if (feed) {
+      feed.innerHTML = `
+        <div style="text-align:center; padding: 36px 16px; color:#8E918F;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4285F4" stroke-width="1.8" style="margin: 0 auto 10px auto;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="10 8 16 12 10 16 10 8" fill="#4285F4"></polygon>
+          </svg>
+          <div style="color:#fff; font-family:var(--g-font); font-size:13.5px; font-weight:600; margin-bottom:6px;">Waiting for Video Playback</div>
+          <div style="font-size:12px; line-height:1.45;">Play the current video or paste any video link in the bar above to audit all spoken claims with Gemini.</div>
+        </div>
+      `;
+    }
   }
 
   // Smooth DOM Observer instead of aggressive polling

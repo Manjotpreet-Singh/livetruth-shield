@@ -1,0 +1,501 @@
+/* ==========================================================================
+   LiveTruth Shield - Google Material 3 / Gemini Expressive UI Theme
+   Clean, Elegant, Ultra-Readable Glassmorphism & Micro-Interactions
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&family=Fira+Code:wght@500&display=swap');
+
+:root {
+  --g-font: "Google Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --g-body-font: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  /* Google Gemini 4-Color Signature Palette */
+  --g-blue: #4285F4;
+  --g-red: #EA4335;
+  --g-yellow: #FBBC04;
+  --g-green: #34A853;
+  --g-gemini-gradient: linear-gradient(135deg, #4285F4 0%, #9B72CB 50%, #D96570 100%);
+  
+  /* Google Dark Material Surface */
+  --g-surface: #1E1F20;
+  --g-surface-elevated: #282A2C;
+  --g-surface-card: #131314;
+  --g-border: rgba(255, 255, 255, 0.12);
+  --g-border-hover: rgba(255, 255, 255, 0.24);
+  
+  /* Typography */
+  --g-text-primary: #E3E3E3;
+  --g-text-secondary: #C4C7C5;
+  --g-text-tertiary: #8E918F;
+}
+
+/* 1. Floating Pill Button (Google Search / Assistant Pill Style) */
+#livetruth-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999999;
+  background: var(--g-surface);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 28px;
+  padding: 10px 20px;
+  font-family: var(--g-font);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+#livetruth-btn:hover {
+  transform: translateY(-2px);
+  background: var(--g-surface-elevated);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 15px rgba(66, 133, 244, 0.3);
+}
+
+/* 2. Glassmorphism Side Panel (Google Gemini Workspace Style) */
+#livetruth-panel {
+  position: fixed;
+  top: 56px;
+  right: 0;
+  width: 420px;
+  height: calc(100vh - 64px);
+  background: rgba(19, 19, 20, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-left: 1px solid var(--g-border);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.75);
+  z-index: 999998;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--g-body-font);
+  transform: translateX(100%);
+  transition: transform 0.38s cubic-bezier(0.05, 0.7, 0.1, 1.0);
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  overflow: hidden;
+}
+
+#livetruth-panel.open {
+  transform: translateX(0);
+}
+
+/* 3. Panel Header */
+.lt-head {
+  padding: 16px 20px;
+  background: rgba(30, 31, 32, 0.7);
+  border-bottom: 1px solid var(--g-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lt-head h2 {
+  margin: 0;
+  font-family: var(--g-font);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.2px;
+}
+
+.lt-badge-gemini {
+  background: var(--g-gemini-gradient);
+  color: #fff;
+  font-family: var(--g-font);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(155, 114, 203, 0.4);
+}
+
+/* Sound Button Toggle */
+.lt-sound-toggle {
+  background: var(--g-surface-elevated);
+  border: 1px solid var(--g-border);
+  color: var(--g-text-secondary);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-family: var(--g-font);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lt-sound-toggle.active {
+  background: rgba(52, 168, 83, 0.15);
+  color: #81C995;
+  border-color: rgba(52, 168, 83, 0.4);
+}
+
+.lt-sound-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Close Button */
+#lt-close {
+  background: none;
+  border: none;
+  color: var(--g-text-tertiary);
+  cursor: pointer;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+#lt-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* 4. Instant Video Intel & Topic Context Card */
+#lt-intel-box {
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--g-border);
+}
+
+.lt-intel-tag {
+  font-family: var(--g-font);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--g-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#lt-video-title {
+  font-family: var(--g-font);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+#lt-video-summary {
+  font-size: 12px;
+  color: var(--g-text-secondary);
+  line-height: 1.45;
+}
+
+/* 5. Google-Style Multi-Segment Score Bar */
+.lt-score-box {
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--g-border);
+}
+
+.lt-score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--g-font);
+  font-size: 12px;
+  color: var(--g-text-secondary);
+}
+
+.lt-score-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.lt-score-bar {
+  height: 100%;
+  width: 72%;
+  background: linear-gradient(90deg, #EA4335, #FBBC04, #34A853);
+  border-radius: 10px;
+  transition: width 0.8s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* 6. Clickable Truth Timeline (Google Chips Style) */
+.lt-timeline-box {
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.015);
+  border-bottom: 1px solid var(--g-border);
+}
+
+.lt-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--g-font);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--g-text-tertiary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lt-verdict-summary {
+  font-size: 10.5px;
+  display: flex;
+  gap: 8px;
+}
+
+.lt-timeline-track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 6px 0;
+  scrollbar-width: thin;
+}
+
+.lt-timeline-track::-webkit-scrollbar {
+  height: 4px;
+}
+.lt-timeline-track::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.lt-timeline-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-family: var(--g-font);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  border: 1px solid transparent;
+}
+
+.lt-timeline-pin.FALSE {
+  background: rgba(234, 67, 53, 0.12);
+  color: #F28B82;
+  border-color: rgba(234, 67, 53, 0.3);
+}
+.lt-timeline-pin.FALSE:hover {
+  background: #EA4335;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(234, 67, 53, 0.4);
+}
+
+.lt-timeline-pin.VERIFIED {
+  background: rgba(52, 168, 83, 0.12);
+  color: #81C995;
+  border-color: rgba(52, 168, 83, 0.3);
+}
+.lt-timeline-pin.VERIFIED:hover {
+  background: #34A853;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 168, 83, 0.4);
+}
+
+.lt-timeline-pin.MISLEADING {
+  background: rgba(251, 188, 4, 0.12);
+  color: #FDD663;
+  border-color: rgba(251, 188, 4, 0.3);
+}
+.lt-timeline-pin.MISLEADING:hover {
+  background: #FBBC04;
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(251, 188, 4, 0.4);
+}
+
+/* 7. Fact Cards Feed */
+.lt-cards-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lt-card {
+  background: var(--g-surface-card);
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid var(--g-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+  position: relative;
+}
+
+.lt-card:hover {
+  border-color: var(--g-border-hover);
+  background: #18191B;
+}
+
+/* Active Video Playback Highlight */
+.lt-card.active-playback {
+  border-color: var(--g-blue);
+  box-shadow: 0 0 24px rgba(66, 133, 244, 0.45);
+  transform: scale(1.02);
+  background: #1B202A;
+}
+
+.lt-card.active-playback::before {
+  content: "⚡ SPEAKING NOW";
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  background: var(--g-blue);
+  color: #fff;
+  font-family: var(--g-font);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(66, 133, 244, 0.5);
+}
+
+.lt-card.FALSE { border-left: 4px solid var(--g-red); }
+.lt-card.VERIFIED { border-left: 4px solid var(--g-green); }
+.lt-card.MISLEADING { border-left: 4px solid var(--g-yellow); }
+
+.lt-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lt-badge {
+  font-family: var(--g-font);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.lt-badge.VERIFIED { background: rgba(52, 168, 83, 0.15); color: #81C995; }
+.lt-badge.FALSE { background: rgba(234, 67, 53, 0.15); color: #F28B82; }
+.lt-badge.MISLEADING { background: rgba(251, 188, 4, 0.15); color: #FDD663; }
+
+.lt-time-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #8AB4F8;
+  border: none;
+  font-family: var(--g-font);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lt-time-btn:hover {
+  background: var(--g-blue);
+  color: #fff;
+}
+
+.lt-quote {
+  font-size: 13.5px;
+  color: var(--g-text-primary);
+  font-style: italic;
+  line-height: 1.45;
+  border-left: 2px solid rgba(255, 255, 255, 0.15);
+  padding-left: 10px;
+}
+
+.lt-explanation {
+  font-size: 12.5px;
+  color: var(--g-text-secondary);
+  line-height: 1.45;
+}
+
+.lt-source {
+  font-size: 11px;
+  color: var(--g-text-tertiary);
+}
+
+.lt-source strong {
+  color: #8AB4F8;
+}
+
+/* 8. Research Drawer (Google Search Grounding Expansion) */
+.lt-research-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--g-border);
+  color: #8AB4F8;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-family: var(--g-font);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.lt-research-btn:hover {
+  background: rgba(66, 133, 244, 0.12);
+  border-color: rgba(66, 133, 244, 0.35);
+}
+
+.lt-research-drawer {
+  background: #18191B;
+  border: 1px solid var(--g-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 11.5px;
+  color: var(--g-text-secondary);
+  line-height: 1.5;
+  display: none;
+  margin-top: 6px;
+  animation: fadeInDrawer 0.25s ease-out;
+}
+
+@keyframes fadeInDrawer {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lt-research-drawer.open {
+  display: block;
+}
+
+.lt-research-drawer h4 {
+  margin: 0 0 8px 0;
+  font-family: var(--g-font);
+  font-size: 11px;
+  color: #81C995;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
